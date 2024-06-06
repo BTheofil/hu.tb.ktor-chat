@@ -1,63 +1,52 @@
 package hu.tb.routing
 
-import hu.tb.model.Member
-import hu.tb.model.Message
-import hu.tb.plugins.ChatSession
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
+import hu.tb.group.GroupController
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.util.concurrent.ConcurrentHashMap
-
-private val memoryDatabase = mutableListOf<Message>()
-
-private val members = ConcurrentHashMap<String, Member>()
+import org.koin.ktor.ext.inject
 
 fun Routing.chat() {
-    webSocket("/chat") {
+    val groupController by inject<GroupController>()
+    webSocket("/chat/{roomId}/{sender}") {
+        /*val roomId = call.parameters["roomId"] ?: return@webSocket close(
+            CloseReason(
+                CloseReason.Codes.CANNOT_ACCEPT,
+                "No room ID"
+            )
+        )*/
 
-        val currentSession = this.call.sessions.get<ChatSession>()
-
-        members[currentSession!!.name] = Member(
-            name = currentSession.name,
-            socket = this
+        val sender = call.parameters["sender"] ?: return@webSocket close(
+            CloseReason(
+                CloseReason.Codes.CANNOT_ACCEPT,
+                "No sender"
+            )
         )
 
-        this.incoming.consumeEach { frame ->
-            if (frame is Frame.Text){
+        try {
+            //1. join to room
+            groupController.join(
+                name = sender,
+                socketSession = this
+            )
 
-                val message = Message(
-                    sender = currentSession.name,
-                    message = frame.readText(),
-                    timestamp = System.currentTimeMillis(),
-                    sessionId = currentSession.sessionId
-                )
-
-                memoryDatabase.add(message)
-                println(memoryDatabase.size)
-
-                members.values.forEach { member ->
-                    val parsedMessage = Json.encodeToString(message)
-                    member.socket.send(Frame.Text(parsedMessage))
+            //2. consume the messages
+            incoming.consumeEach { frame: Frame ->
+                if (frame is Frame.Text) {
+                    groupController.sendMessage(
+                        sender = sender,
+                        message = frame.readText()
+                    )
                 }
             }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        } finally {
+            groupController.leave(
+                sender
+            )
         }
-
-    }
-}
-
-
-fun Route.getMessage(){
-    get("/messages") {
-        call.respond(
-            HttpStatusCode.OK,
-            memoryDatabase
-        )
     }
 }
