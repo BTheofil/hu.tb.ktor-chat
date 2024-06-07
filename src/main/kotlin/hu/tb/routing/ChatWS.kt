@@ -9,13 +9,13 @@ import org.koin.ktor.ext.inject
 
 fun Routing.chat() {
     val groupController by inject<GroupController>()
-    webSocket("/chat/{roomId}/{sender}") {
-        /*val roomId = call.parameters["roomId"] ?: return@webSocket close(
+    webSocket("/chat/{groupId}/{sender}") {
+        val roomId = call.parameters["groupId"] ?: return@webSocket close(
             CloseReason(
                 CloseReason.Codes.CANNOT_ACCEPT,
-                "No room ID"
+                "No groupId ID"
             )
-        )*/
+        )
 
         val sender = call.parameters["sender"] ?: return@webSocket close(
             CloseReason(
@@ -36,7 +36,8 @@ fun Routing.chat() {
                 if (frame is Frame.Text) {
                     groupController.sendMessage(
                         sender = sender,
-                        message = frame.readText()
+                        message = frame.readText(),
+                        groupId = roomId
                     )
                 }
             }

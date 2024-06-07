@@ -12,24 +12,26 @@ import java.util.concurrent.ConcurrentHashMap
 class GroupController(
     private val messageRepository: MessageRepository
 ) {
-
-    private val members = ConcurrentHashMap<String, Member>()
+    private val onlineMembers = ConcurrentHashMap<String, Member>()
 
     fun join(
         name: String,
         socketSession: WebSocketSession
     ) {
-        members[name] = Member(
+        onlineMembers[name] = Member(
             name,
             socketSession
         )
     }
 
+    suspend fun isGroupExist(groupId: String): Boolean = messageRepository.isGroupExist(groupId)
+
     suspend fun sendMessage(
         sender: String,
-        message: String
+        message: String,
+        groupId: String
     ) {
-        members.values.forEach { member ->
+        onlineMembers.values.forEach { member ->
             //create msg
             val messageObject = Message(
                 id = ObjectId().toString(),
@@ -39,7 +41,7 @@ class GroupController(
             )
 
             //same msg to db
-            messageRepository.insertMessage(messageObject)
+            messageRepository.insertMessage(messageObject, groupId)
 
             //send msg to others
             val parseMessage = Json.encodeToString(messageObject)
@@ -47,12 +49,14 @@ class GroupController(
         }
     }
 
+    suspend fun getHistory(groupId: String): List<Message> = messageRepository.getHistory(groupId)
+
     suspend fun leave(
         leaver: String
     ) {
-        members[leaver]?.socket?.close()
-        if (members.containsKey(leaver)) {
-            members.remove(leaver)
+        onlineMembers[leaver]?.socket?.close()
+        if (onlineMembers.containsKey(leaver)) {
+            onlineMembers.remove(leaver)
         }
     }
 }

@@ -5,5 +5,11 @@ import org.bson.BsonValue
 
 interface MessageRepository {
 
-    suspend fun insertMessage(message: Message): BsonValue?
+    suspend fun createGroup(groupId: String)
+
+    suspend fun isGroupExist(groupId: String): Boolean
+
+    suspend fun insertMessage(message: Message, groupId: String): BsonValue?
+
+    suspend fun getHistory(groupId: String): List<Message>
 }

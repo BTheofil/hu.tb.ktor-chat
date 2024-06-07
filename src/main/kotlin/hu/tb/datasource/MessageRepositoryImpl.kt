@@ -4,20 +4,37 @@ import com.mongodb.MongoException
 import org.bson.BsonValue
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
 import hu.tb.datasource.sendModel.Message
-
-private const val MESSAGE_COLLECTION = "message_collection"
+import kotlinx.coroutines.flow.toList
 
 class MessageRepositoryImpl(
     private val mongoDb: MongoDatabase
-): MessageRepository {
+) : MessageRepository {
 
-    override suspend fun insertMessage(message: Message): BsonValue? {
+    override suspend fun createGroup(groupId: String) {
+        mongoDb.createCollection(groupId)
+    }
+
+    override suspend fun isGroupExist(
+        groupId: String
+    ): Boolean {
+        val rawList = mongoDb.listCollectionNames().toList()
+        return rawList.contains(groupId)
+    }
+
+    override suspend fun insertMessage(
+        message: Message,
+        groupId: String,
+    ): BsonValue? {
         try {
-            val result = mongoDb.getCollection<Message>(MESSAGE_COLLECTION).insertOne(message)
+            val result = mongoDb.getCollection<Message>(groupId).insertOne(message)
             return result.insertedId
         } catch (e: MongoException) {
             System.err.println("Unable to insert due to an error: $e")
             return null
         }
     }
+
+    override suspend fun getHistory(groupId: String): List<Message> =
+        mongoDb.getCollection<Message>(groupId).find().toList()
+
 }
