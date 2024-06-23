@@ -1,5 +1,6 @@
 package hu.tb
 
+import com.mongodb.kotlin.client.coroutine.MongoClient
 import hu.tb.di.mainModule
 import hu.tb.plugins.*
 import io.ktor.server.application.*
@@ -13,6 +14,18 @@ fun main(args: Array<String>) {
 fun Application.module() {
     install(Koin){
         slf4jLogger()
+
+        modules(
+            org.koin.dsl.module {
+                single {
+                    MongoClient.create(
+                        environment.config.propertyOrNull("ktor.mongo.uri")?.getString()
+                            ?: "asd"
+                    ).getDatabase("sample_mflix")
+                }
+            }
+        )
+
         modules(mainModule)
     }
 

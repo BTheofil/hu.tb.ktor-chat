@@ -14,6 +14,11 @@ class GroupController(
 ) {
     private val onlineMembers = ConcurrentHashMap<String, Member>()
 
+    suspend fun createGroup(
+        groupId: String
+    ) = messageRepository.createGroup(groupId)
+
+
     fun join(
         name: String,
         socketSession: WebSocketSession
@@ -49,7 +54,7 @@ class GroupController(
         }
     }
 
-    suspend fun getHistory(groupId: String): List<Message> = messageRepository.getHistory(groupId)
+    suspend fun getHistory(groupId: String) = messageRepository.getHistory(groupId)
 
     suspend fun leave(
         leaver: String

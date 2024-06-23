@@ -22,4 +22,11 @@ fun Route.chatInfo() {
 
         call.respond(historyList)
     }
+
+    get("/info/create/{groupId}"){
+        val id = call.parameters["groupId"] ?: return@get call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
+        groupController.createGroup(id)
+
+        call.respond("Created new group with $id")
+    }
 }

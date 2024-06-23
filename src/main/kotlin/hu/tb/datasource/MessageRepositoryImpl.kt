@@ -3,7 +3,9 @@ package hu.tb.datasource
 import com.mongodb.MongoException
 import org.bson.BsonValue
 import com.mongodb.kotlin.client.coroutine.MongoDatabase
+import hu.tb.datasource.request.MessageDto
 import hu.tb.datasource.sendModel.Message
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 
 class MessageRepositoryImpl(
@@ -35,6 +37,13 @@ class MessageRepositoryImpl(
     }
 
     override suspend fun getHistory(groupId: String): List<Message> =
-        mongoDb.getCollection<Message>(groupId).find().toList()
+        mongoDb.getCollection<MessageDto>(groupId).find().map {
+            Message(
+                id = it.id.toString(),
+                sender = it.sender,
+                message = it.message,
+                timeStamp = it.timeStamp
+            )
+        }.toList()
 
 }
