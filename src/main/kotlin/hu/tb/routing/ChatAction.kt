@@ -7,19 +7,17 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.koin.ktor.ext.inject
 
-fun Route.chatInfo() {
+fun Route.chatAction() {
     val groupController by inject<GroupController>()
-    get("/info/{groupId}") {
-        val id = call.parameters["groupId"] ?: return@get call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
-        val isExist = groupController.isGroupExist(id)
 
-        call.respond(isExist)
+    get("/action/create/{groupId}"){
+        val id = call.parameters["groupId"] ?: return@get call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
+        groupController.createGroup(id)
+
+        call.respond("Created new group with $id")
     }
 
-    get("/info/{groupId}/history") {
-        val id = call.parameters["groupId"] ?: return@get call.respondText("Bad Request", status = HttpStatusCode.BadRequest)
-        val historyList = groupController.getHistory(id)
-
-        call.respond(historyList)
+    get("action/members") {
+        groupController.getMembers()
     }
 }

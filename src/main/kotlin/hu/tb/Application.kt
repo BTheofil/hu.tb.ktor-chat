@@ -12,21 +12,18 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    install(Koin){
+    install(Koin) {
         slf4jLogger()
-
         modules(
             org.koin.dsl.module {
                 single {
                     MongoClient.create(
                         environment.config.propertyOrNull("ktor.mongo.uri")?.getString()
-                            ?: "asd"
-                    ).getDatabase("sample_mflix")
+                            ?: throw RuntimeException("Failed to access MongoDB URI.")
+                    ).getDatabase(environment.config.property("ktor.mongo.database").getString())
                 }
-            }
+            }, mainModule
         )
-
-        modules(mainModule)
     }
 
     configureSockets()

@@ -7,6 +7,7 @@ import hu.tb.datasource.request.MessageDto
 import hu.tb.datasource.sendModel.Message
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
+import java.lang.reflect.Member
 
 class MessageRepositoryImpl(
     private val mongoDb: MongoDatabase
@@ -45,5 +46,10 @@ class MessageRepositoryImpl(
                 timeStamp = it.timeStamp
             )
         }.toList()
+
+    override suspend fun getMembers(): List<Member> {
+        val members = mongoDb.getCollection<Member>("Members")
+        return members.find().toList()
+    }
 
 }

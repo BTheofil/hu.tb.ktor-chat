@@ -6,6 +6,7 @@ import hu.tb.group.GroupController
 import org.koin.dsl.module
 
 val mainModule = module {
+
     factory { GroupController(get()) }
 
     single<MessageRepository> {

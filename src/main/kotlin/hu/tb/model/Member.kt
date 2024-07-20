@@ -4,5 +4,6 @@ import io.ktor.websocket.*
 
 data class Member(
     val name: String,
-    val socket: WebSocketSession
+    val activeSocketSession: WebSocketSession,
+    val friendsList: List<Member> = emptyList()
 )

@@ -18,6 +18,8 @@ class GroupController(
         groupId: String
     ) = messageRepository.createGroup(groupId)
 
+    suspend fun getMembers() = messageRepository.getMembers()
+
 
     fun join(
         name: String,
@@ -50,7 +52,7 @@ class GroupController(
 
             //send msg to others
             val parseMessage = Json.encodeToString(messageObject)
-            member.socket.send(Frame.Text(parseMessage))
+            member.activeSocketSession.send(Frame.Text(parseMessage))
         }
     }
 
@@ -59,7 +61,7 @@ class GroupController(
     suspend fun leave(
         leaver: String
     ) {
-        onlineMembers[leaver]?.socket?.close()
+        onlineMembers[leaver]?.activeSocketSession?.close()
         if (onlineMembers.containsKey(leaver)) {
             onlineMembers.remove(leaver)
         }
