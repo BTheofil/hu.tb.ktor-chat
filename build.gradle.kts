@@ -1,6 +1,7 @@
 plugins {
     application
     kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
 }
 
 group = "hu.tb"
@@ -8,9 +9,6 @@ version = "0.0.1"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
-
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
 repositories {
@@ -19,16 +17,18 @@ repositories {
 
 dependencies {
     implementation(ktorLibs.server.contentNegotiation)
-    implementation(ktorLibs.server.netty)
     implementation(ktorLibs.serialization.kotlinx.json)
+    implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.sessions)
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.websockets.serialization)
 
-    implementation("org.mongodb:bson:5.6.1")
-    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:4.10.1")
+    implementation("ch.qos.logback:logback-classic:1.5.20")
 
-    //Koin Dependency Injection
-    implementation("io.insert-koin:koin-ktor:3.5.3")
-    implementation("io.insert-koin:koin-logger-slf4j:3.5.3")
+    val mongoVersion = "5.6.1"
+    implementation("org.mongodb:bson-kotlinx:$mongoVersion")
+    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:$mongoVersion")
+
+    implementation("io.insert-koin:koin-ktor:4.1.1")
+    implementation("io.insert-koin:koin-logger-slf4j:4.1.1")
 }

@@ -4,6 +4,7 @@ import com.mongodb.kotlin.client.coroutine.MongoClient
 import hu.tb.di.mainModule
 import hu.tb.plugins.installWebSockets
 import hu.tb.plugins.installContentNegotiation
+import hu.tb.plugins.installShutdown
 import hu.tb.plugins.setupRouting
 import io.ktor.server.application.*
 import org.koin.ktor.plugin.Koin
@@ -20,9 +21,9 @@ fun Application.module() {
             org.koin.dsl.module {
                 single {
                     MongoClient.create(
-                        environment.config.propertyOrNull("ktor.mongo.uri")?.getString()
+                        environment.config.propertyOrNull("ktor.mongo.uriforsample")?.getString()
                             ?: throw RuntimeException("Failed to access MongoDB URI.")
-                    ).getDatabase(environment.config.property("ktor.mongo.database").getString())
+                    )
                 }
             }, mainModule
         )
@@ -30,9 +31,8 @@ fun Application.module() {
 
     installContentNegotiation()
     installWebSockets()
+    installShutdown()
 
     setupRouting()
-
-
     //configureSecurity()
 }
