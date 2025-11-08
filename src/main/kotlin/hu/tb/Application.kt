@@ -2,7 +2,9 @@ package hu.tb
 
 import com.mongodb.kotlin.client.coroutine.MongoClient
 import hu.tb.di.mainModule
-import hu.tb.plugins.*
+import hu.tb.plugins.installWebSockets
+import hu.tb.plugins.installContentNegotiation
+import hu.tb.plugins.setupRouting
 import io.ktor.server.application.*
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
@@ -26,8 +28,11 @@ fun Application.module() {
         )
     }
 
-    configureSockets()
-    configureRouting()
-    configureSerialization()
-    configureSecurity()
+    installContentNegotiation()
+    installWebSockets()
+
+    setupRouting()
+
+
+    //configureSecurity()
 }

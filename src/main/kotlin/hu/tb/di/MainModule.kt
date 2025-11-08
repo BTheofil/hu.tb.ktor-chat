@@ -12,5 +12,4 @@ val mainModule = module {
     single<MessageRepository> {
         MessageRepositoryImpl(get())
     }
-
 }
