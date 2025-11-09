@@ -21,9 +21,10 @@ fun Application.module() {
         modules(
             org.koin.dsl.module {
                 single {
+                    val login = System.getenv("MONGO_SERVER_LOGIN")
+                    val pw = System.getenv("MONGO_SERVER_PW")
                     MongoClient.create(
-                        environment.config.propertyOrNull("ktor.mongo.uriforsample")?.getString()
-                            ?: throw RuntimeException("Failed to access MongoDB URI.")
+                        "mongodb+srv://$login:$pw@clusterforchat.3tnpmhn.mongodb.net/?appName=ClusterForChat"
                     )
                 }
             }, mainModule
