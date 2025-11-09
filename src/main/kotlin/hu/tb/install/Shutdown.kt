@@ -1,4 +1,4 @@
-package hu.tb.plugins
+package hu.tb.install
 
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

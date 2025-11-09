@@ -19,6 +19,7 @@ dependencies {
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.netty)
+    implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.sessions)
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.websockets.serialization)

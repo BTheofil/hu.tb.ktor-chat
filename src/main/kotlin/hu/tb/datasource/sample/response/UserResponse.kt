@@ -1,9 +1,9 @@
-package hu.tb.datasource.sample.model
+package hu.tb.datasource.sample.response
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserSender(
+data class UserResponse(
     val id: String,
     val name: String,
     val email: String,

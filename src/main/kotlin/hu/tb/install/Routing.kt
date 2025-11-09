@@ -1,4 +1,4 @@
-package hu.tb.plugins
+package hu.tb.install
 
 import hu.tb.routing.chat
 import hu.tb.routing.chatAction

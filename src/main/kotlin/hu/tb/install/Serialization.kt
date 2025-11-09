@@ -1,4 +1,4 @@
-package hu.tb.plugins
+package hu.tb.install
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
