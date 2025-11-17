@@ -1,8 +1,5 @@
 package hu.tb.install
 
-import hu.tb.routing.chat
-import hu.tb.routing.chatAction
-import hu.tb.routing.chatInfo
 import hu.tb.routing.sampleApi
 import hu.tb.routing.serverInfo
 import io.ktor.server.application.*
@@ -14,9 +11,5 @@ fun Application.setupRouting() {
         serverInfo()
 
         sampleApi()
-
-        chat()
-        chatInfo()
-        chatAction()
     }
 }

@@ -1,7 +1,11 @@
+import com.google.cloud.tools.gradle.appengine.appyaml.AppEngineAppYamlExtension
+
 plugins {
     application
     kotlin("jvm") version "2.2.20"
     kotlin("plugin.serialization") version "2.2.20"
+    id("com.gradleup.shadow") version "8.3.9"
+    id("com.google.cloud.tools.appengine") version "2.8.0"
 }
 
 group = "hu.tb"
@@ -26,10 +30,25 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.20")
 
-    val mongoVersion = "5.6.1"
-    implementation("org.mongodb:bson-kotlinx:$mongoVersion")
-    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:$mongoVersion")
+    val koinVersion = "4.1.1"
+    implementation("io.insert-koin:koin-ktor:$koinVersion")
+    implementation("io.insert-koin:koin-logger-slf4j:$koinVersion")
 
-    implementation("io.insert-koin:koin-ktor:4.1.1")
-    implementation("io.insert-koin:koin-logger-slf4j:4.1.1")
+    val sqlVersion = "1.0.0-rc-3"
+    implementation("org.jetbrains.exposed:exposed-core:$sqlVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$sqlVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$sqlVersion")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+}
+
+appengine {
+    configure<AppEngineAppYamlExtension> {
+        stage {
+            setArtifact("build/libs/${project.name}-${version}-all.jar")
+        }
+        deploy {
+            version = "GCLOUD_CONFIG"
+            projectId = "GCLOUD_CONFIG"
+        }
+    }
 }

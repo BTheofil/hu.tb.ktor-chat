@@ -1,6 +1,5 @@
 package hu.tb.install
 
-import com.mongodb.MongoCommandException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -9,10 +8,10 @@ import io.ktor.server.response.respondText
 
 fun Application.installStatusPage() {
     install(StatusPages) {
-        exception<MongoCommandException> { call, cause ->
+        exception<Exception> { call, cause ->
             call.respondText(
-                text = "No permission $cause",
-                status = HttpStatusCode.Locked
+                text = cause.message ?: "There is been an error :c",
+                status = HttpStatusCode.BadRequest
             )
         }
     }
