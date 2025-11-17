@@ -31,6 +31,7 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
+data.db
 
 ### VS Code ###
 .vscode/
