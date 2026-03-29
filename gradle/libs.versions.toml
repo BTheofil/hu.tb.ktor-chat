@@ -1,0 +1,18 @@
+[versions]
+koin = "4.1.1"
+exposed = "1.1.1"
+sqlite = "3.50.2.0"
+
+[libraries]
+koin = { group = "io.insert-koin", name = "koin-ktor", version.ref = "koin" }
+koin-logger = { group = "io.insert-koin", name = "koin-logger-slf4j", version.ref = "koin" }
+
+exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
+exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
+exposed-dao = { group = "org.jetbrains.exposed", name = "exposed-dao", version.ref = "exposed" }
+
+sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
+
+[bundles]
+koin = ["koin", "koin-logger"]
+exposed = ["exposed-core", "exposed-jdbc", "exposed-dao"]

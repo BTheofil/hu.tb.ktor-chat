@@ -5,7 +5,10 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("ktorLibs") {
-            from("io.ktor:ktor-version-catalog:3.3.2")
+            from("io.ktor:ktor-version-catalog:3.4.1")
+        }
+        create("otherLibs") {
+            from(files("../${rootProject.name}/gradle/libs.versions.toml"))
         }
     }
 }
@@ -15,13 +18,6 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap")
-    }
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id.startsWith("com.google.cloud.tools.appengine")) {
-                useModule("com.google.cloud.tools:appengine-gradle-plugin:${requested.version}")
-            }
-        }
     }
 }
 
