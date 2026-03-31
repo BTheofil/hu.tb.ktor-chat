@@ -17,6 +17,6 @@ class MessageEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var content by MessageTable.content
     var timeStamp by MessageTable.timeStamp
-    var sender by UserTable.id
-    var group by GroupTable.id
+    var sender by UserEntity referencedOn MessageTable.sender
+    var group by GroupEntity referencedOn MessageTable.group
 }

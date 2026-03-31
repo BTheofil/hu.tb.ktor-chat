@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "hu.tb"
-version = "0.0.2"
+version = "0.1.0"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
@@ -33,7 +33,7 @@ dependencies {
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.websockets.serialization)
     implementation(ktorLibs.server.callLogging)
-
+    implementation(otherLibs.logger.classic)
     implementation(otherLibs.bundles.koin)
     implementation(otherLibs.bundles.exposed)
     implementation(otherLibs.sqlite)

@@ -15,4 +15,5 @@ class UserEntity(id: EntityID<Long>) : LongEntity(id) {
 
     var name by UserTable.name
     var password by UserTable.password
+    var groups by GroupEntity via GroupJunctionTable
 }

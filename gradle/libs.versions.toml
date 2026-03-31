@@ -1,7 +1,8 @@
 [versions]
-koin = "4.1.1"
+koin = "4.2.0"
 exposed = "1.1.1"
 sqlite = "3.50.2.0"
+logger = "1.5.32"
 
 [libraries]
 koin = { group = "io.insert-koin", name = "koin-ktor", version.ref = "koin" }
@@ -12,6 +13,8 @@ exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version
 exposed-dao = { group = "org.jetbrains.exposed", name = "exposed-dao", version.ref = "exposed" }
 
 sqlite = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
+
+logger-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logger" }
 
 [bundles]
 koin = ["koin", "koin-logger"]
