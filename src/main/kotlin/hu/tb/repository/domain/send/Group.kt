@@ -3,9 +3,8 @@ package hu.tb.repository.domain.send
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class User(
+data class Group(
     val id: Long,
     val name: String,
-    val password: String,
-    val groupIds: List<Long> = emptyList()
+    val users: List<User>
 )
