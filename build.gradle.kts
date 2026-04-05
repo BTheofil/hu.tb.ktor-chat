@@ -37,4 +37,8 @@ dependencies {
     implementation(otherLibs.bundles.koin)
     implementation(otherLibs.bundles.exposed)
     implementation(otherLibs.sqlite)
+
+    testImplementation(ktorLibs.server.testHost)
+    testImplementation(ktorLibs.client.contentNegotiation)
+    testImplementation(otherLibs.kotlin.test)
 }

@@ -28,8 +28,17 @@ fun Application.module() {
     //configureSecurity()
 }
 
-private fun connectDatabase() =
-    Database.connect(
-        url = "jdbc:sqlite:data.db",
-        driver = "org.sqlite.JDBC"
-    )
+private fun Application.connectDatabase() {
+    val isDeveloperMode = environment.config.property("build.isDeveloperMode").getString().toBoolean()
+    if (isDeveloperMode) {
+        Database.connect(
+            "jdbc:sqlite:build/test.db",
+            "org.sqlite.JDBC"
+        )
+    } else {
+        Database.connect(
+            url = "jdbc:sqlite:build/data.db",
+            driver = "org.sqlite.JDBC"
+        )
+    }
+}

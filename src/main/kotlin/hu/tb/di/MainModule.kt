@@ -1,11 +1,11 @@
 package hu.tb.di
 
-import hu.tb.repository.SampleRepository
-import hu.tb.datasource.data.repository.SampleRepositoryImpl
+import hu.tb.repository.ChatRepository
+import hu.tb.datasource.data.repository.ChatRepositoryImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val mainModule = module {
-    singleOf(::SampleRepositoryImpl).bind<SampleRepository>()
+    singleOf(::ChatRepositoryImpl).bind<ChatRepository>()
 }

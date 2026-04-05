@@ -6,7 +6,7 @@ import hu.tb.repository.domain.send.Group
 import hu.tb.repository.domain.send.Message
 import hu.tb.repository.domain.send.User
 
-interface SampleRepository {
+interface ChatRepository {
     fun createNewUser(username: String, userPassword: String): UserId
     fun getUserById(userId: Long): User?
     fun createNewGroup(currentUser: User, otherUser: User): Group?

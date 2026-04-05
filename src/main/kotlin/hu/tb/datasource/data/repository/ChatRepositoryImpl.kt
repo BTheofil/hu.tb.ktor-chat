@@ -1,7 +1,7 @@
 package hu.tb.datasource.data.repository
 
 import hu.tb.datasource.data.model.*
-import hu.tb.repository.SampleRepository
+import hu.tb.repository.ChatRepository
 import hu.tb.repository.domain.send.Group
 import hu.tb.repository.domain.send.Message
 import hu.tb.repository.domain.send.User
@@ -16,7 +16,7 @@ typealias MessageId = Long
 
 private const val MESSAGE_PAGE_LIMIT = 10
 
-class SampleRepositoryImpl : SampleRepository {
+class ChatRepositoryImpl : ChatRepository {
 
     init {
         transaction {
@@ -33,6 +33,7 @@ class SampleRepositoryImpl : SampleRepository {
         username: String,
         userPassword: String
     ): UserId = transactionLogger {
+        SchemaUtils.listTables()
         UserEntity.new {
             name = username
             password = userPassword
@@ -124,7 +125,7 @@ class SampleRepositoryImpl : SampleRepository {
             id = this.id.value,
             name = this.name,
             password = this.password,
-            groupIds = this.groups.map { it.id.value }
+            groupIds = if (this.groups == null) emptyList() else this.groups.map { it.id.value }
         )
 
     private fun MessageEntity.toDomain() =
