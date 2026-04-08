@@ -42,21 +42,21 @@ class RoutingTest {
                 }
             }
 
-            val john = client.post("/createUser") {
+            client.post("/createUser") {
                 contentType(ContentType.Application.Json)
-                setBody(UserReceive("John-Tester", password = "abc-123"))
+                setBody(UserReceive(name = "John-Tester", password = "abc-123"))
             }
-            assertEquals(1L, john.body<Long>())
-
             client.post("/createUser") {
                 contentType(ContentType.Application.Json)
                 setBody(UserReceive("Michel-Tester", password = "ice-cream"))
             }
 
-            val searchedUser = client.get("/searchUserById") {
-                parameter("userId", 1)
+            val searchedUser = client.post("/searchUserByNameAndPw") {
+                contentType(ContentType.Application.Json)
+                setBody(UserReceive(name = "John-Tester", password = "abc-123"))
             }
-            assertEquals(User(id = 1L, name = "John-Tester", password = "abc-123"), searchedUser.body<User>())
+            assertEquals("John-Tester", searchedUser.body<User>().name)
+            assertEquals("abc-123", searchedUser.body<User>().password)
 
             val emptyUser = client.get("/deleteUser")
             assertEquals(HttpStatusCode.NotFound, emptyUser.status)

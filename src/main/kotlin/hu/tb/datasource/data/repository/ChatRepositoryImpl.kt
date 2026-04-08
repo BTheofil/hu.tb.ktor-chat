@@ -6,6 +6,7 @@ import hu.tb.repository.domain.send.Group
 import hu.tb.repository.domain.send.Message
 import hu.tb.repository.domain.send.User
 import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
@@ -43,6 +44,10 @@ class ChatRepositoryImpl : ChatRepository {
     override fun getUserById(userId: Long): User? = transactionLogger {
         UserEntity.findById(userId)
     }?.toDomain()
+
+    override fun getUserByNameAndPw(searchedName: String, searchedPw: String): List<User> = transactionLogger {
+        UserEntity.find { UserTable.name eq searchedName and (UserTable.password eq searchedPw) }
+    }.map { it.toDomain() }
 
     override fun createNewGroup(
         currentUser: User,

@@ -31,8 +31,17 @@ fun Route.userApi() {
         val user = chatRepository.getUserById(userId = userId)
         user?.let {
             call.respond(message = user, status = HttpStatusCode.Found)
-        } ?:
-        call.respondText(text = "No user found with $userId", status = HttpStatusCode.NotFound)
+        } ?: call.respondText(text = "No user found with $userId", status = HttpStatusCode.NotFound)
+    }
+
+    post("/searchUserByNameAndPw") {
+        val searchedUser = call.receive<UserReceive>()
+        val userList = chatRepository.getUserByNameAndPw(searchedUser.name, searchedUser.password)
+        when (userList.size) {
+            1 -> call.respond(message = userList.first(), status = HttpStatusCode.Created)
+            0 ->  call.respondText(text = "No user found", status = HttpStatusCode.NotFound)
+            else -> call.respondText(text = "Too many user with same data", status = HttpStatusCode.NotFound)
+        }
     }
 
     get("/deleteUser") {

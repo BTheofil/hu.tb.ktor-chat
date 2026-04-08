@@ -9,6 +9,7 @@ import hu.tb.repository.domain.send.User
 interface ChatRepository {
     fun createNewUser(username: String, userPassword: String): UserId
     fun getUserById(userId: Long): User?
+    fun getUserByNameAndPw(searchedName: String, searchedPw: String): List<User>
     fun createNewGroup(currentUser: User, otherUser: User): Group?
     fun getGroupById(groupId: Long): Group?
     fun createMessage(message: Message): MessageId?
