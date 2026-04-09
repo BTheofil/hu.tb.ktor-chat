@@ -1,6 +1,6 @@
 import hu.tb.module
-import hu.tb.repository.domain.receive.UserReceive
-import hu.tb.repository.domain.send.User
+import hu.tb.domain.receive.UserReceive
+import hu.tb.domain.send.User
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
@@ -51,23 +51,31 @@ class RoutingTest {
                 setBody(UserReceive("Michel-Tester", password = "ice-cream"))
             }
 
-            val searchedUser = client.post("/searchUserByNameAndPw") {
+            val searchedJohn = client.post("/searchUserByNameAndPw") {
                 contentType(ContentType.Application.Json)
                 setBody(UserReceive(name = "John-Tester", password = "abc-123"))
             }
-            assertEquals("John-Tester", searchedUser.body<User>().name)
-            assertEquals("abc-123", searchedUser.body<User>().password)
+            assertEquals("John-Tester", searchedJohn.body<User>().name)
+            assertEquals("abc-123", searchedJohn.body<User>().password)
 
             val emptyUser = client.get("/deleteUser")
             assertEquals(HttpStatusCode.NotFound, emptyUser.status)
             assertEquals("No userId provided", emptyUser.bodyAsText())
 
             val johnDelete = client.get("/deleteUser") {
-                parameter("userId", 1)
+                parameter("userId", searchedJohn.body<User>().id)
             }
-            assertEquals("User with 1 id deleted", johnDelete.bodyAsText())
+            assertEquals(
+                "User with ${searchedJohn.body<User>().id} id deleted",
+                johnDelete.bodyAsText()
+            )
+
+            val searchedMichel = client.post("/searchUserByNameAndPw") {
+                contentType(ContentType.Application.Json)
+                setBody(UserReceive("Michel-Tester", password = "ice-cream"))
+            }
             val michelDelete = client.get("/deleteUser") {
-                parameter("userId", 2)
+                parameter("userId", searchedMichel.body<User>().id)
             }
             assertEquals(HttpStatusCode.OK, michelDelete.status)
         }

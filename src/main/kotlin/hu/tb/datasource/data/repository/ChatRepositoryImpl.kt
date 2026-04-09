@@ -1,12 +1,10 @@
 package hu.tb.datasource.data.repository
 
 import hu.tb.datasource.data.model.*
-import hu.tb.repository.ChatRepository
-import hu.tb.repository.domain.send.Group
-import hu.tb.repository.domain.send.Message
-import hu.tb.repository.domain.send.User
+import hu.tb.domain.send.Group
+import hu.tb.domain.send.Message
+import hu.tb.domain.send.User
 import org.jetbrains.exposed.v1.core.SortOrder
-import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
@@ -17,7 +15,7 @@ typealias MessageId = Long
 
 private const val MESSAGE_PAGE_LIMIT = 10
 
-class ChatRepositoryImpl : ChatRepository {
+class ChatRepository {
 
     init {
         transaction {
@@ -30,26 +28,27 @@ class ChatRepositoryImpl : ChatRepository {
         }
     }
 
-    override fun createNewUser(
+    fun createNewUser(
         username: String,
         userPassword: String
     ): UserId = transactionLogger {
-        SchemaUtils.listTables()
         UserEntity.new {
             name = username
             password = userPassword
         }
     }.id.value
 
-    override fun getUserById(userId: Long): User? = transactionLogger {
+    fun getUserById(userId: Long): User? = transactionLogger {
         UserEntity.findById(userId)
     }?.toDomain()
 
-    override fun getUserByNameAndPw(searchedName: String, searchedPw: String): List<User> = transactionLogger {
-        UserEntity.find { UserTable.name eq searchedName and (UserTable.password eq searchedPw) }
-    }.map { it.toDomain() }
+    fun getUserByNameAndPw(searchedName: String, searchedPw: String): User? = transactionLogger {
+        UserEntity.all()
+            .find { it.name == searchedName && it.password == searchedPw }
+            ?.toDomain()
+    }
 
-    override fun createNewGroup(
+    fun createNewGroup(
         currentUser: User,
         otherUser: User
     ): Group? = transactionLogger {
@@ -64,11 +63,11 @@ class ChatRepositoryImpl : ChatRepository {
         } else null
     }?.toDomain()
 
-    override fun getGroupById(groupId: Long): Group? = transactionLogger {
+    fun getGroupById(groupId: Long): Group? = transactionLogger {
         GroupEntity.findById(groupId)
     }?.toDomain()
 
-    override fun createMessage(message: Message): MessageId? = transactionLogger {
+    fun createMessage(message: Message): MessageId? = transactionLogger {
         val senderEntity = UserEntity.findById(message.senderId)
         val groupEntity = GroupEntity.findById(message.groupId)
 
@@ -82,7 +81,7 @@ class ChatRepositoryImpl : ChatRepository {
         } else null
     }?.id?.value
 
-    override fun getMessageHistory(
+    fun getMessageHistory(
         groupId: Long,
         offset: Long
     ): List<Message> = transactionLogger {
@@ -93,11 +92,11 @@ class ChatRepositoryImpl : ChatRepository {
             .toList()
     }.map { it.toDomain() }
 
-    override fun deleteMessage(messageId: Long) = transaction {
+    fun deleteMessage(messageId: Long) = transaction {
         MessageEntity.findById(1)?.delete()
     }
 
-    override fun leftGroup(
+    fun leftGroup(
         userId: Long,
         groupId: Long
     ) = transactionLogger {
@@ -114,7 +113,7 @@ class ChatRepositoryImpl : ChatRepository {
         }
     }
 
-    override fun deleteUser(userId: Long) = transactionLogger {
+    fun deleteUser(userId: Long) = transactionLogger {
         UserEntity.findById(userId)?.delete()
     }
 

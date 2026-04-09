@@ -1,7 +1,7 @@
 package hu.tb.routing
 
-import hu.tb.repository.ChatRepository
-import hu.tb.repository.domain.receive.UserReceive
+import hu.tb.datasource.data.repository.ChatRepository
+import hu.tb.domain.receive.UserReceive
 import io.ktor.http.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
@@ -36,11 +36,11 @@ fun Route.userApi() {
 
     post("/searchUserByNameAndPw") {
         val searchedUser = call.receive<UserReceive>()
-        val userList = chatRepository.getUserByNameAndPw(searchedUser.name, searchedUser.password)
-        when (userList.size) {
-            1 -> call.respond(message = userList.first(), status = HttpStatusCode.Created)
-            0 ->  call.respondText(text = "No user found", status = HttpStatusCode.NotFound)
-            else -> call.respondText(text = "Too many user with same data", status = HttpStatusCode.NotFound)
+        val user = chatRepository.getUserByNameAndPw(searchedUser.name, searchedUser.password)
+        if (user != null) {
+            call.respond(message = user, status = HttpStatusCode.Created)
+        } else {
+            call.respondText(text = "No user found", status = HttpStatusCode.NotFound)
         }
     }
 

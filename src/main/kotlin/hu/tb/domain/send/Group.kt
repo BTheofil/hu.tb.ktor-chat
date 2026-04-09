@@ -1,4 +1,4 @@
-package hu.tb.repository.domain.send
+package hu.tb.domain.send
 
 import kotlinx.serialization.Serializable
 
