@@ -44,11 +44,21 @@ fun Route.userApi() {
         }
     }
 
-    get("/deleteUser") {
+    get("/searchUsersName") {
+        val requestedNameSearch = call.request.queryParameters["searchName"]
+        if (requestedNameSearch != null) {
+            val names = chatRepository.getUserByName(requestedNameSearch)
+            call.respond(message = names, status = HttpStatusCode.OK)
+        } else {
+            call.respondText(text = "No name in query parameter", status = HttpStatusCode.NotFound)
+        }
+    }
+
+    delete("/deleteUser") {
         val userId = call.request.queryParameters["userId"]
         if (userId == null) {
             call.respondText(text = "No userId provided", status = HttpStatusCode.NotFound)
-            return@get
+            return@delete
         }
 
         chatRepository.deleteUser(userId = userId.toLong())

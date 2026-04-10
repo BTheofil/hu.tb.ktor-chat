@@ -48,20 +48,23 @@ class ChatRepository {
             ?.toDomain()
     }
 
+    fun getUserByName(searchedName: String): List<User> = transactionLogger {
+        UserEntity.find { UserTable.name eq searchedName }.map { it.toDomain() }
+    }
+
     fun createNewGroup(
-        currentUser: User,
-        otherUser: User
+        currentUserId: Long,
+        otherUserId: Long
     ): Group? = transactionLogger {
-        val currentUserEntity = UserEntity.findById(currentUser.id)
-        val otherUserEntity = UserEntity.findById(otherUser.id)
+        val currentUserEntity = UserEntity.findById(currentUserId)
+        val otherUserEntity = UserEntity.findById(otherUserId)
 
         if (currentUserEntity != null && otherUserEntity != null) {
-            return@transactionLogger GroupEntity.new {
-                name = currentUser.name + " " + otherUser.name
-                users = SizedCollection(listOf(currentUserEntity, otherUserEntity))
-            }
+            val newGroup = GroupEntity.new { name = (currentUserId + otherUserId).toString() }
+            newGroup.users = SizedCollection(listOf(currentUserEntity, otherUserEntity))
+            newGroup.toDomain()
         } else null
-    }?.toDomain()
+    }
 
     fun getGroupById(groupId: Long): Group? = transactionLogger {
         GroupEntity.findById(groupId)
@@ -96,7 +99,7 @@ class ChatRepository {
         MessageEntity.findById(1)?.delete()
     }
 
-    fun leftGroup(
+    fun leaveGroup(
         userId: Long,
         groupId: Long
     ) = transactionLogger {
