@@ -1,6 +1,7 @@
 package hu.tb.install
 
 import hu.tb.routing.groupApi
+import hu.tb.routing.messageApi
 import hu.tb.routing.userApi
 import hu.tb.routing.serverInfo
 import io.ktor.server.application.*
@@ -12,5 +13,6 @@ fun Application.setupRouting() {
         serverInfo()
         userApi()
         groupApi()
+        messageApi()
     }
 }
