@@ -5,7 +5,7 @@ dependencyResolutionManagement {
 
     versionCatalogs {
         create("ktorLibs") {
-            from("io.ktor:ktor-version-catalog:3.4.1")
+            from("io.ktor:ktor-version-catalog:3.4.2")
         }
         create("otherLibs") {
             from(files("../${rootProject.name}/gradle/libs.versions.toml"))

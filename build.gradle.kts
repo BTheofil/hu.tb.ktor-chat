@@ -1,9 +1,9 @@
 plugins {
     application
-    kotlin("jvm") version "2.2.20"
-    kotlin("plugin.serialization") version "2.2.20"
-    id("io.ktor.plugin") version "3.4.1"
-    id("com.google.cloud.tools.jib") version "3.4.0"
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
+    id("io.ktor.plugin") version "3.4.2"
+    id("com.google.cloud.tools.jib") version "3.5.3"
 }
 
 group = "hu.tb"
@@ -29,7 +29,8 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.statusPages)
-    implementation(ktorLibs.server.sessions)
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.websockets.serialization)
     implementation(ktorLibs.server.callLogging)

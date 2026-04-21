@@ -18,14 +18,13 @@ fun Application.module() {
         slf4jLogger()
         modules(mainModule)
     }
-
     installContentNegotiation()
     installStatusPage()
     installWebSockets()
     installShutdown()
+    installAuth()
 
     setupRouting()
-    //configureSecurity()
 }
 
 private fun Application.connectDatabase() {
