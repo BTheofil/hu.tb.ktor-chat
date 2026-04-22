@@ -28,7 +28,11 @@ fun Route.userApi() {
             issuer = environment.config.property("jwt.issuer").getString()
         )
 
-        val token = generatorService(username = newUser.name, generateInfo = generateInfo)
+        val token = generatorService(
+            userId = userId,
+            username = newUser.name,
+            generateInfo = generateInfo
+        )
 
         call.respond(
             message = UserCreated(

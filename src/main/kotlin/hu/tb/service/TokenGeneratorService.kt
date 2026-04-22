@@ -13,10 +13,11 @@ data class GenerateInfo(
 private val expireDuration = 5.days
 
 class TokenGeneratorService {
-    operator fun invoke(username: String, generateInfo: GenerateInfo): String =
+    operator fun invoke(userId: Long, username: String, generateInfo: GenerateInfo): String =
         JWT.create()
             .withAudience(generateInfo.audience)
             .withIssuer(generateInfo.issuer)
+            .withClaim("userId", userId)
             .withClaim("username", username)
             .withExpiresAt(Date(System.currentTimeMillis() + expireDuration.inWholeMilliseconds))
             .sign(Algorithm.HMAC256(System.getenv("JWT-SECRET")))
