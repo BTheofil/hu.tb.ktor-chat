@@ -7,7 +7,8 @@ import kotlin.time.Duration.Companion.days
 
 data class GenerateInfo(
     val audience: String,
-    val issuer: String
+    val issuer: String,
+    val secret: String?
 )
 
 private val expireDuration = 5.days
@@ -20,5 +21,5 @@ class TokenGeneratorService {
             .withClaim("userId", userId)
             .withClaim("username", username)
             .withExpiresAt(Date(System.currentTimeMillis() + expireDuration.inWholeMilliseconds))
-            .sign(Algorithm.HMAC256(System.getenv("JWT-SECRET")))
+            .sign(Algorithm.HMAC256(generateInfo.secret ?: System.getenv("JWT-SECRET")))
 }

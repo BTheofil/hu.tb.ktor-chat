@@ -25,7 +25,8 @@ fun Route.userApi() {
 
         val generateInfo = GenerateInfo(
             audience = environment.config.property("jwt.audience").getString(),
-            issuer = environment.config.property("jwt.issuer").getString()
+            issuer = environment.config.property("jwt.issuer").getString(),
+            secret = environment.config.propertyOrNull("jwt.secret")?.getString()
         )
 
         val token = generatorService(

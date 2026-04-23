@@ -1,10 +1,10 @@
 import hu.tb.domain.receive.GroupCreateReceive
 import hu.tb.domain.receive.GroupLeaveReceive
-import hu.tb.module
 import hu.tb.domain.receive.UserReceive
 import hu.tb.domain.send.User
+import hu.tb.module
 import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -17,24 +17,34 @@ import kotlin.test.assertEquals
 class RoutingTest {
 
     @Test
-    fun `ping server test`() = testApplication {
-        environment {
-            config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true"
-            )
-        }
-        application.module()
+    fun `ping server test`() =
+        testApplication {
+                environment {
+                    config = MapApplicationConfig(
+                        "build.isDeveloperMode" to "true",
+                        "jwt.realm" to "message app",
+                        "jwt.audience" to "user messenger app",
+                        "jwt.issuer" to "http://0.0.0.0:8080/",
+                        "jwt.secret" to "secretTest"
+                    )
+                }
 
-        val response = client.get("/ping")
-        assertEquals("pong", response.bodyAsText())
-    }
+                application.module()
+
+                val response = client.get("/ping")
+                assertEquals("pong", response.bodyAsText())
+            }
 
     @Test
     fun `test user create-get-delete`() {
         testApplication {
             environment {
                 config = MapApplicationConfig(
-                    "build.isDeveloperMode" to "true"
+                    "build.isDeveloperMode" to "true",
+                    "jwt.realm" to "message app",
+                    "jwt.audience" to "user messenger app",
+                    "jwt.issuer" to "http://0.0.0.0:8080/",
+                    "jwt.secret" to "secretTest"
                 )
             }
             application.module()
@@ -87,7 +97,11 @@ class RoutingTest {
     fun `test group create-delete`() = testApplication {
         environment {
             config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true"
+                "build.isDeveloperMode" to "true",
+                "jwt.realm" to "message app",
+                "jwt.audience" to "user messenger app",
+                "jwt.issuer" to "http://0.0.0.0:8080/",
+                "jwt.secret" to "secretTest"
             )
         }
         application.module()

@@ -96,7 +96,7 @@ class ChatRepository {
     }.map { it.toDomain() }
 
     fun deleteMessage(messageId: Long) = transaction {
-        MessageEntity.findById(1)?.delete()
+        MessageEntity.findById(messageId)?.delete()
     }
 
     fun leaveGroup(
