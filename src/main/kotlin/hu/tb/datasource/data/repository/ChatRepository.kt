@@ -93,7 +93,8 @@ class ChatRepository {
             .limit(MESSAGE_PAGE_LIMIT)
             .offset(offset)
             .toList()
-    }.map { it.toDomain() }
+            .map { it.toDomain() }
+    }
 
     fun deleteMessage(messageId: Long) = transaction {
         MessageEntity.findById(messageId)?.delete()

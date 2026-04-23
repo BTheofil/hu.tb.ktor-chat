@@ -1,9 +1,13 @@
 package hu.tb.routing
 
 import hu.tb.datasource.data.repository.ChatRepository
+import hu.tb.domain.receive.MessageHistoryReceive
 import hu.tb.domain.send.Message
+import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -47,5 +51,19 @@ fun Route.messageApi() {
 
             }
         }
+    }
+
+    get("/groupHistory") {
+        val messageHistory = call.receive<MessageHistoryReceive>()
+
+        val messagesDomain = chatRepository.getMessageHistory(
+            groupId = messageHistory.groupId,
+            offset = messageHistory.offset
+        )
+
+        call.respond(
+            message = messagesDomain,
+            status = HttpStatusCode.OK
+        )
     }
 }
