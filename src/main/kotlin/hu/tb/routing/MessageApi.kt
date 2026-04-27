@@ -1,6 +1,7 @@
 package hu.tb.routing
 
 import hu.tb.datasource.data.repository.ChatRepository
+import hu.tb.domain.receive.DeleteMessageReceive
 import hu.tb.domain.receive.MessageHistoryReceive
 import hu.tb.domain.send.Message
 import io.ktor.http.*
@@ -31,7 +32,6 @@ fun Route.messageApi() {
             incoming.consumeAsFlow().collect { frame ->
                 when (frame) {
                     is Frame.Text -> {
-                        println(frame.readText())
                         chatRepository.createMessage(
                             message = Message(
                                 content = frame.readText(),
@@ -65,5 +65,11 @@ fun Route.messageApi() {
             message = messagesDomain,
             status = HttpStatusCode.OK
         )
+    }
+
+    delete("/deleteMessage") {
+        val messageId = call.receive<DeleteMessageReceive>()
+
+        chatRepository.deleteMessage(messageId = messageId.messageId)
     }
 }
