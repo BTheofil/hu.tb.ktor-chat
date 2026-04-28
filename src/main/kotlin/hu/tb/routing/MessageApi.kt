@@ -1,7 +1,8 @@
 package hu.tb.routing
 
 import hu.tb.datasource.data.repository.ChatRepository
-import hu.tb.domain.receive.DeleteMessageReceive
+import hu.tb.domain.receive.MessageConnectReceive
+import hu.tb.domain.receive.MessageDeleteReceive
 import hu.tb.domain.receive.MessageHistoryReceive
 import hu.tb.domain.send.Message
 import io.ktor.http.*
@@ -20,26 +21,22 @@ fun Route.messageApi() {
     val chatRepository by inject<ChatRepository>()
 
     authenticate("auth-jwt") {
-        webSocket("/group/{groupId}") {
-            val groupId = call.parameters["groupId"]
-            if (groupId == null) {
-                close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No groupId provided"))
-                return@webSocket
-            }
+        webSocket("/groupConnect") {
+            val connectData = call.receive<MessageConnectReceive>()
 
             val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asLong()
 
             incoming.consumeAsFlow().collect { frame ->
                 when (frame) {
                     is Frame.Text -> {
-                        chatRepository.createMessage(
-                            message = Message(
-                                content = frame.readText(),
-                                timestamp = System.currentTimeMillis(),
-                                senderId = userId,
-                                groupId = groupId.toLong()
-                            )
+                        val message = Message(
+                            content = frame.readText(),
+                            timestamp = System.currentTimeMillis(),
+                            senderId = userId,
+                            groupId = connectData.targetGroupId
                         )
+                        chatRepository.createMessage(message = message) //save db
+                        sendSerialized(message) //send data to frontend
                     }
 
                     is Frame.Close -> {
@@ -68,8 +65,8 @@ fun Route.messageApi() {
     }
 
     delete("/deleteMessage") {
-        val messageId = call.receive<DeleteMessageReceive>()
-
+        val messageId = call.receive<MessageDeleteReceive>()
         chatRepository.deleteMessage(messageId = messageId.messageId)
+        call.respond(message = "Message deleted with $messageId", status = HttpStatusCode.OK)
     }
 }

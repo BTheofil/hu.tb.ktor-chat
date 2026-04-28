@@ -1,6 +1,7 @@
 import hu.tb.domain.receive.GroupCreateReceive
 import hu.tb.domain.receive.GroupLeaveReceive
-import hu.tb.domain.receive.UserReceive
+import hu.tb.domain.receive.UserDeleteReceive
+import hu.tb.domain.receive.UserSearchReceive
 import hu.tb.domain.send.User
 import hu.tb.module
 import io.ktor.client.call.*
@@ -17,80 +18,78 @@ import kotlin.test.assertEquals
 class RoutingTest {
 
     @Test
-    fun `ping server test`() =
-        testApplication {
-                environment {
-                    config = MapApplicationConfig(
-                        "build.isDeveloperMode" to "true",
-                        "jwt.realm" to "message app",
-                        "jwt.audience" to "user messenger app",
-                        "jwt.issuer" to "http://0.0.0.0:8080/",
-                        "jwt.secret" to "secretTest"
-                    )
-                }
+    fun `ping server test`() = testApplication {
+        environment {
+            config = MapApplicationConfig(
+                "build.isDeveloperMode" to "true",
+                "jwt.realm" to "message app",
+                "jwt.audience" to "user messenger app",
+                "jwt.issuer" to "http://0.0.0.0:8080/",
+                "jwt.secret" to "secretTest"
+            )
+        }
 
-                application.module()
+        application.module()
 
-                val response = client.get("/ping")
-                assertEquals("pong", response.bodyAsText())
-            }
+        val response = client.get("/ping")
+        assertEquals("pong", response.bodyAsText())
+    }
 
     @Test
-    fun `test user create-get-delete`() {
-        testApplication {
-            environment {
-                config = MapApplicationConfig(
-                    "build.isDeveloperMode" to "true",
-                    "jwt.realm" to "message app",
-                    "jwt.audience" to "user messenger app",
-                    "jwt.issuer" to "http://0.0.0.0:8080/",
-                    "jwt.secret" to "secretTest"
-                )
-            }
-            application.module()
-            client = createClient {
-                install(ContentNegotiation) {
-                    json()
-                }
-            }
-
-            client.post("/createUser") {
-                contentType(ContentType.Application.Json)
-                setBody(UserReceive(name = "John-Tester", password = "abc-123"))
-            }
-            client.post("/createUser") {
-                contentType(ContentType.Application.Json)
-                setBody(UserReceive("Michel-Tester", password = "ice-cream"))
-            }
-
-            val searchedJohn = client.post("/searchUserByNameAndPw") {
-                contentType(ContentType.Application.Json)
-                setBody(UserReceive(name = "John-Tester", password = "abc-123"))
-            }
-            assertEquals("John-Tester", searchedJohn.body<User>().name)
-            assertEquals("abc-123", searchedJohn.body<User>().password)
-
-            val emptyUser = client.delete("/deleteUser")
-            assertEquals(HttpStatusCode.NotFound, emptyUser.status)
-            assertEquals("No userId provided", emptyUser.bodyAsText())
-
-            val johnDelete = client.delete("/deleteUser") {
-                parameter("userId", searchedJohn.body<User>().id)
-            }
-            assertEquals(
-                "User with ${searchedJohn.body<User>().id} id deleted",
-                johnDelete.bodyAsText()
+    fun `test user create-get-delete`() = testApplication {
+        environment {
+            config = MapApplicationConfig(
+                "build.isDeveloperMode" to "true",
+                "jwt.realm" to "message app",
+                "jwt.audience" to "user messenger app",
+                "jwt.issuer" to "http://0.0.0.0:8080/",
+                "jwt.secret" to "secretTest"
             )
-
-            val searchedMichel = client.post("/searchUserByNameAndPw") {
-                contentType(ContentType.Application.Json)
-                setBody(UserReceive("Michel-Tester", password = "ice-cream"))
-            }
-            val michelDelete = client.delete("/deleteUser") {
-                parameter("userId", searchedMichel.body<User>().id)
-            }
-            assertEquals(HttpStatusCode.OK, michelDelete.status)
         }
+        application.module()
+        client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+
+        client.post("/createUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget(name = "John-Tester", password = "abc-123"))
+        }
+        client.post("/createUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget("Michel-Tester", password = "ice-cream"))
+        }
+
+        val searchedJohn = client.get("/searchUserByNameAndPw") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget(name = "John-Tester", password = "abc-123"))
+        }
+        assertEquals("John-Tester", searchedJohn.body<User>().name)
+        assertEquals("abc-123", searchedJohn.body<User>().password)
+
+        val emptyUser = client.delete("/deleteUser")
+        assertEquals(HttpStatusCode.UnsupportedMediaType, emptyUser.status)
+
+        val johnDelete = client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = searchedJohn.body<User>().id))
+        }
+        assertEquals(
+            "User with ${searchedJohn.body<User>().id} id deleted",
+            johnDelete.bodyAsText()
+        )
+
+        val searchedMichel = client.get("/searchUserByNameAndPw") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget("Michel-Tester", password = "ice-cream"))
+        }
+        val michelDelete = client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = searchedMichel.body<User>().id))
+        }
+        assertEquals(HttpStatusCode.OK, michelDelete.status)
     }
 
     @Test
@@ -113,15 +112,21 @@ class RoutingTest {
 
         client.post("/createUser") {
             contentType(ContentType.Application.Json)
-            setBody(UserReceive(name = "Bob-member", password = "the_builder"))
+            setBody(UserSearchReceive.ByTarget(name = "Bob-member", password = "the_builder"))
         }
         client.post("/createUser") {
             contentType(ContentType.Application.Json)
-            setBody(UserReceive(name = "Lidl", password = "paper01"))
+            setBody(UserSearchReceive.ByTarget(name = "Lidl", password = "paper01"))
         }
 
-        val bobResponse = client.get("/searchUsersName") { parameter("searchName", "Bob-member") }
-        val lidlResponse = client.get("/searchUsersName") { parameter("searchName", "Lidl") }
+        val bobResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Bob-member"))
+        }
+        val lidlResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Lidl"))
+        }
 
         val bobUser = bobResponse.body<List<User>>().first()
         val lidlUser = lidlResponse.body<List<User>>().first()
@@ -131,8 +136,14 @@ class RoutingTest {
             setBody(GroupCreateReceive(currentUserId = bobUser.id, otherUserId = lidlUser.id))
         }
 
-        val bobWithGroupResponse = client.get("/searchUsersName") { parameter("searchName", "Bob-member") }
-        val lidlUpdatedResponse = client.get("/searchUsersName") { parameter("searchName", "Lidl") }
+        val bobWithGroupResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Bob-member"))
+        }
+        val lidlUpdatedResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Lidl"))
+        }
 
         assertEquals(
             bobWithGroupResponse.body<List<User>>().first().groupIds.first(),
@@ -149,13 +160,19 @@ class RoutingTest {
             )
         }
 
-        val bobLeftGroupResponse = client.get("/searchUsersName") { parameter("searchName", "Bob-member") }
+        val bobLeftGroupResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Bob-member"))
+        }
         assertEquals(
             bobLeftGroupResponse.body<List<User>>().first().groupIds,
             emptyList()
         )
 
-        val lidlStillInGroupResponse = client.get("/searchUsersName") { parameter("searchName", "Lidl") }
+        val lidlStillInGroupResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Lidl"))
+        }
         assertEquals(
             lidlStillInGroupResponse.body<List<User>>().first().groupIds.size,
             1
@@ -171,14 +188,23 @@ class RoutingTest {
             )
         }
 
-        val lidlLeftGroupResponse = client.get("/searchUsersName") { parameter("searchName", "Lidl") }
+        val lidlLeftGroupResponse = client.get("/searchUserByName") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByName(name = "Lidl"))
+        }
 
         assertEquals(
             lidlLeftGroupResponse.body<List<User>>().first().groupIds,
             emptyList()
         )
 
-        client.delete("/deleteUser") { parameter("userId", bobLeftGroupResponse.body<List<User>>().first().id) }
-        client.delete("/deleteUser") { parameter("userId", lidlLeftGroupResponse.body<List<User>>().first().id) }
+        client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = bobLeftGroupResponse.body<List<User>>().first().id))
+        }
+        client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = lidlLeftGroupResponse.body<List<User>>().first().id))
+        }
     }
 }

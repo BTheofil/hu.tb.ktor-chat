@@ -1,7 +1,9 @@
 package hu.tb.routing
 
 import hu.tb.datasource.data.repository.ChatRepository
-import hu.tb.domain.receive.UserReceive
+import hu.tb.domain.receive.UserCreateReceive
+import hu.tb.domain.receive.UserDeleteReceive
+import hu.tb.domain.receive.UserSearchReceive
 import hu.tb.domain.send.UserCreated
 import hu.tb.service.GenerateInfo
 import hu.tb.service.TokenGeneratorService
@@ -17,7 +19,7 @@ fun Route.userApi() {
     val generatorService by inject<TokenGeneratorService>()
 
     post("/createUser") {
-        val newUser = call.receive<UserReceive>()
+        val newUser = call.receive<UserCreateReceive>()
         val userId = chatRepository.createNewUser(
             username = newUser.name,
             userPassword = newUser.password
@@ -45,21 +47,18 @@ fun Route.userApi() {
     }
 
     get("/searchUserById") {
-        val userId = call.request.queryParameters["userId"]?.toLong()
-        if (userId == null) {
-            call.respondText(text = "No userId provided", status = HttpStatusCode.NotFound)
-            return@get
-        }
+        val searchUser = call.receive<UserSearchReceive.ById>()
 
-        val user = chatRepository.getUserById(userId = userId)
+        val user = chatRepository.getUserById(userId = searchUser.searchUserId)
         user?.let {
             call.respond(message = user, status = HttpStatusCode.Found)
-        } ?: call.respondText(text = "No user found with $userId", status = HttpStatusCode.NotFound)
+        } ?: call.respondText(text = "No user found with ${searchUser.searchUserId}", status = HttpStatusCode.NotFound)
     }
 
-    post("/searchUserByNameAndPw") {
-        val searchedUser = call.receive<UserReceive>()
-        val user = chatRepository.getUserByNameAndPw(searchedUser.name, searchedUser.password)
+    get("/searchUserByNameAndPw") {
+        val searchUser = call.receive<UserSearchReceive.ByTarget>()
+
+        val user = chatRepository.getUserByNameAndPw(searchUser.name, searchUser.password)
         if (user != null) {
             call.respond(message = user, status = HttpStatusCode.Created)
         } else {
@@ -67,24 +66,17 @@ fun Route.userApi() {
         }
     }
 
-    get("/searchUsersName") {
-        val requestedNameSearch = call.request.queryParameters["searchName"]
-        if (requestedNameSearch != null) {
-            val names = chatRepository.getUserByName(requestedNameSearch)
-            call.respond(message = names, status = HttpStatusCode.OK)
-        } else {
-            call.respondText(text = "No name in query parameter", status = HttpStatusCode.NotFound)
-        }
+    get("/searchUserByName") {
+        val searchUser = call.receive<UserSearchReceive.ByName>()
+
+        val names = chatRepository.getUserByName(searchUser.name)
+        call.respond(message = names, status = HttpStatusCode.OK)
     }
 
     delete("/deleteUser") {
-        val userId = call.request.queryParameters["userId"]
-        if (userId == null) {
-            call.respondText(text = "No userId provided", status = HttpStatusCode.NotFound)
-            return@delete
-        }
+        val userData = call.receive<UserDeleteReceive>()
 
-        chatRepository.deleteUser(userId = userId.toLong())
-        call.respondText(text = "User with $userId id deleted", status = HttpStatusCode.OK)
+        chatRepository.deleteUser(userId = userData.userId)
+        call.respondText(text = "User with ${userData.userId} id deleted", status = HttpStatusCode.OK)
     }
 }
