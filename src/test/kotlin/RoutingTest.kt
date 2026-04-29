@@ -3,12 +3,14 @@ import hu.tb.domain.receive.GroupLeaveReceive
 import hu.tb.domain.receive.UserDeleteReceive
 import hu.tb.domain.receive.UserSearchReceive
 import hu.tb.domain.send.Group
+import hu.tb.domain.send.Message
 import hu.tb.domain.send.User
 import hu.tb.domain.send.UserCreated
 import hu.tb.module
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.receiveDeserialized
 import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -21,6 +23,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.testing.testApplication
@@ -28,6 +31,7 @@ import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -238,10 +242,10 @@ class RoutingTest {
         }
         application.module()
         client = createClient {
-            install(ContentNegotiation) {
-                json()
+            install(ContentNegotiation) { json() }
+            install(WebSockets) {
+                contentConverter = KotlinxWebsocketSerializationConverter(Json)
             }
-            install(WebSockets)
         }
 
         val aliceData = client.post("/createUser") {
@@ -286,8 +290,7 @@ class RoutingTest {
                         header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
                         parameter("targetGroupId", targetGroupId)
                     }) {
-                    val responseText = (incoming.receive() as Frame.Text).readText()
-                    assertEquals("Hello", responseText)
+                    assertEquals("Hello",  receiveDeserialized<Message>().content)
                 }
             }
 
