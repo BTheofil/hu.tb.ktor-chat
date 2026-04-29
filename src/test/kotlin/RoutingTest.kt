@@ -2,16 +2,32 @@ import hu.tb.domain.receive.GroupCreateReceive
 import hu.tb.domain.receive.GroupLeaveReceive
 import hu.tb.domain.receive.UserDeleteReceive
 import hu.tb.domain.receive.UserSearchReceive
+import hu.tb.domain.send.Group
 import hu.tb.domain.send.User
+import hu.tb.domain.send.UserCreated
 import hu.tb.module
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.config.*
-import io.ktor.server.testing.*
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.websocket.WebSockets
+import io.ktor.client.plugins.websocket.webSocket
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.server.config.MapApplicationConfig
+import io.ktor.server.testing.testApplication
+import io.ktor.websocket.Frame
+import io.ktor.websocket.readText
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -183,7 +199,8 @@ class RoutingTest {
             setBody(
                 GroupLeaveReceive(
                     leaveUserId = lidlStillInGroupResponse.body<List<User>>().first().id,
-                    targetGroupId = lidlStillInGroupResponse.body<List<User>>().first().groupIds.first()
+                    targetGroupId = lidlStillInGroupResponse.body<List<User>>()
+                        .first().groupIds.first()
                 )
             )
         }
@@ -205,6 +222,77 @@ class RoutingTest {
         client.delete("/deleteUser") {
             contentType(ContentType.Application.Json)
             setBody(UserDeleteReceive(userId = lidlLeftGroupResponse.body<List<User>>().first().id))
+        }
+    }
+
+    @Test
+    fun `test message`() = testApplication {
+        environment {
+            config = MapApplicationConfig(
+                "build.isDeveloperMode" to "true",
+                "jwt.realm" to "message app",
+                "jwt.audience" to "user messenger app",
+                "jwt.issuer" to "http://0.0.0.0:8080/",
+                "jwt.secret" to "secretTest"
+            )
+        }
+        application.module()
+        client = createClient {
+            install(ContentNegotiation) {
+                json()
+            }
+            install(WebSockets)
+        }
+
+        val aliceData = client.post("/createUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget(name = "Alice", password = "apple"))
+        }
+        val evelinData = client.post("/createUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserSearchReceive.ByTarget(name = "Evelin", password = "lemon"))
+        }
+
+        val aliceUser = aliceData.body<UserCreated>()
+        val evelinUser = evelinData.body<UserCreated>()
+
+        val groupData = client.post("/createGroup") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                GroupCreateReceive(
+                    currentUserId = aliceUser.userId,
+                    otherUserId = evelinUser.userId
+                )
+            )
+        }
+        val targetGroupId = groupData.body<Group>().id
+
+
+        runTest {
+            val alice = launch {
+                client.webSocket(
+                    urlString = "/groupConnect",
+                    request = {
+                        header(HttpHeaders.Authorization, "Bearer ${aliceUser.token}")
+                        parameter("targetGroupId", targetGroupId)
+                    }) {
+                    send(Frame.Text("Hello"))
+                }
+            }
+            val evelin = launch {
+                client.webSocket(
+                    urlString = "/groupConnect",
+                    request = {
+                        header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
+                        parameter("targetGroupId", targetGroupId)
+                    }) {
+                    val responseText = (incoming.receive() as Frame.Text).readText()
+                    assertEquals("Hello", responseText)
+                }
+            }
+
+            alice.join()
+            evelin.join()
         }
     }
 }

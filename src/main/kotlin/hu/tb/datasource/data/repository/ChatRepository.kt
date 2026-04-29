@@ -60,7 +60,7 @@ class ChatRepository {
         val otherUserEntity = UserEntity.findById(otherUserId)
 
         if (currentUserEntity != null && otherUserEntity != null) {
-            val newGroup = GroupEntity.new { name = (currentUserId + otherUserId).toString() }
+            val newGroup = GroupEntity.new { name = "$currentUserId-$otherUserId" }
             newGroup.users = SizedCollection(listOf(currentUserEntity, otherUserEntity))
             newGroup.toDomain()
         } else null
