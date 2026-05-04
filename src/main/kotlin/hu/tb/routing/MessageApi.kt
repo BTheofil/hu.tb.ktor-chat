@@ -13,6 +13,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
+import io.ktor.server.websocket.DefaultWebSocketServerSession
 import io.ktor.server.websocket.sendSerialized
 import io.ktor.server.websocket.webSocket
 import io.ktor.websocket.CloseReason
@@ -21,41 +22,57 @@ import io.ktor.websocket.close
 import io.ktor.websocket.readText
 import kotlinx.coroutines.flow.consumeAsFlow
 import org.koin.ktor.ext.inject
+import java.util.Collections
+import java.util.concurrent.ConcurrentHashMap
 
 fun Route.messageApi() {
 
     val chatRepository by inject<ChatRepository>()
+    val groupConnections = ConcurrentHashMap<Long, MutableSet<DefaultWebSocketServerSession>>()
 
     authenticate("auth-jwt") {
         webSocket("/groupConnect") {
-            val connectData = call.request.queryParameters["targetGroupId"]
-            if (connectData == null) {
+            val targetGroupId = call.request.queryParameters["targetGroupId"]
+            if (targetGroupId == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No target group id received :c"))
                 return@webSocket
             }
 
             val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asLong()
 
-            incoming.consumeAsFlow().collect { frame ->
-                when (frame) {
-                    is Frame.Text -> {
-                        val message = Message(
-                            content = frame.readText(),
-                            timestamp = System.currentTimeMillis(),
-                            senderId = userId,
-                            groupId = connectData.toLong()
-                        )
-                        chatRepository.createMessage(message = message) //save db
-                        sendSerialized(message) //send data to frontend
-                    }
+            val currentRoomSessions = groupConnections.computeIfAbsent(targetGroupId.toLong()) {
+                Collections.synchronizedSet(LinkedHashSet())
+            }
+            currentRoomSessions.add(this)
 
-                    is Frame.Close -> {
-                        close(CloseReason(CloseReason.Codes.NORMAL, "User with $userId id closed"))
-                    }
+            try {
+                incoming.consumeAsFlow().collect { frame ->
+                    when (frame) {
+                        is Frame.Text -> {
+                            val message = Message(
+                                content = frame.readText(),
+                                timestamp = System.currentTimeMillis(),
+                                senderId = userId,
+                                groupId = targetGroupId.toLong()
+                            )
+                            chatRepository.createMessage(message = message) //save in db
 
-                    else -> {}
+                            currentRoomSessions.forEach { session ->
+                                session.sendSerialized(message)
+                            }
+                        }
+
+                        is Frame.Close ->
+                            close(CloseReason(CloseReason.Codes.NORMAL, "User with $userId id closed"))
+
+                        else -> {}
+                    }
                 }
-
+            } catch (e: Exception) {
+                println("The server get this exception: "+ e.localizedMessage)
+            } finally {
+                currentRoomSessions.remove(this)
+                if (currentRoomSessions.isEmpty()) groupConnections.remove(targetGroupId.toLong())
             }
         }
     }
