@@ -66,9 +66,9 @@ class ChatRepository {
         } else null
     }
 
-    fun getGroupById(groupId: Long): Group? = transactionLogger {
+    /*fun getGroupById(groupId: Long): Group? = transactionLogger {
         GroupEntity.findById(groupId)
-    }?.toDomain()
+    }?.toDomain()*/
 
     fun createMessage(message: Message): MessageId? = transactionLogger {
         val senderEntity = UserEntity.findById(message.senderId)
@@ -138,6 +138,7 @@ class ChatRepository {
 
     private fun MessageEntity.toDomain() =
         Message(
+            id = this.id.value,
             content = this.content,
             timestamp = this.timeStamp,
             senderId = this.sender.id.value,

@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MessageHistoryReceive(
     val groupId: Long,
-    val offset: Long
+    val offset: Long = 0
 )

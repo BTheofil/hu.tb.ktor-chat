@@ -25,6 +25,7 @@ import java.time.ZoneId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class RoutingTest {
@@ -224,7 +225,6 @@ class RoutingTest {
         }
         val targetGroupId = groupData.body<Group>().id
 
-
         runTest {
             val alice = launch {
                 client.webSocket(
@@ -234,6 +234,9 @@ class RoutingTest {
                         parameter("targetGroupId", targetGroupId)
                     }) {
                     send(Frame.Text("Hello"))
+                    delay(200.milliseconds)
+                    assertEquals("Hi Alice, it's Evelin here", receiveDeserialized<Message>().content)
+                    send(Frame.Close())
                 }
             }
             val evelin = launch {
@@ -243,12 +246,53 @@ class RoutingTest {
                         header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
                         parameter("targetGroupId", targetGroupId)
                     }) {
+                    delay(100.milliseconds)
                     assertEquals("Hello", receiveDeserialized<Message>().content)
+                    send(Frame.Text("Hi Alice, it's Evelin here"))
+                    send(Frame.Close())
                 }
             }
 
             alice.join()
             evelin.join()
+
+            client.delete("/deleteUser") {
+                contentType(ContentType.Application.Json)
+                setBody(UserDeleteReceive(userId = aliceUser.userId))
+            }
+
+            client.delete("/deleteUser") {
+                contentType(ContentType.Application.Json)
+                setBody(UserDeleteReceive(userId = evelinUser.userId))
+            }
+        }
+
+        val messageHistory = client.get("/groupHistory") {
+            contentType(ContentType.Application.Json)
+            setBody(MessageHistoryReceive(groupId = targetGroupId))
+        }
+
+        assertEquals(2, messageHistory.body<List<Message>>().size)
+        messageHistory.body<List<Message>>().first().also {
+            assertEquals("Hello", it.content)
+            assertEquals(aliceUser.userId, it.senderId)
+        }
+
+        val deleteData = client.delete("/deleteMessage") {
+            contentType(ContentType.Application.Json)
+            setBody(MessageDeleteReceive(messageId = messageHistory.body<List<Message>>().first().id!!))
+        }
+        assertEquals(HttpStatusCode.OK, deleteData.status)
+
+        val shorterMessageHistory = client.get("/groupHistory") {
+            contentType(ContentType.Application.Json)
+            setBody(MessageHistoryReceive(groupId = targetGroupId))
+        }
+        assertEquals(1, shorterMessageHistory.body<List<Message>>().size)
+
+        client.delete("/deleteMessage") {
+            contentType(ContentType.Application.Json)
+            setBody(MessageDeleteReceive(messageId = shorterMessageHistory.body<List<Message>>().first().id!!))
         }
     }
 

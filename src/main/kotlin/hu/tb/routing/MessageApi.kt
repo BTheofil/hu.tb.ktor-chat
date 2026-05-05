@@ -55,10 +55,10 @@ fun Route.messageApi() {
                                 senderId = userId,
                                 groupId = targetGroupId.toLong()
                             )
-                            chatRepository.createMessage(message = message) //save in db
+                            val messageId = chatRepository.createMessage(message = message) //save in db
 
                             currentRoomSessions.forEach { session ->
-                                session.sendSerialized(message)
+                                session.sendSerialized(message.copy(id = messageId))
                             }
                         }
 
@@ -69,7 +69,7 @@ fun Route.messageApi() {
                     }
                 }
             } catch (e: Exception) {
-                println("The server get this exception: "+ e.localizedMessage)
+                println("The server get this exception: " + e.localizedMessage)
             } finally {
                 currentRoomSessions.remove(this)
                 if (currentRoomSessions.isEmpty()) groupConnections.remove(targetGroupId.toLong())
