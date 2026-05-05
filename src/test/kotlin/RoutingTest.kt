@@ -1,55 +1,37 @@
-import hu.tb.domain.receive.GroupCreateReceive
-import hu.tb.domain.receive.GroupLeaveReceive
-import hu.tb.domain.receive.UserDeleteReceive
-import hu.tb.domain.receive.UserSearchReceive
+import com.auth0.jwt.JWT
+import hu.tb.domain.receive.*
 import hu.tb.domain.send.Group
 import hu.tb.domain.send.Message
 import hu.tb.domain.send.User
 import hu.tb.domain.send.UserCreated
 import hu.tb.module
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.client.plugins.websocket.receiveDeserialized
-import io.ktor.client.plugins.websocket.webSocket
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.KotlinxWebsocketSerializationConverter
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.config.MapApplicationConfig
-import io.ktor.server.testing.testApplication
-import io.ktor.websocket.Frame
-import io.ktor.websocket.readText
+import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.websocket.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.config.*
+import io.ktor.server.testing.*
+import io.ktor.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import java.time.LocalDateTime
+import java.time.ZoneId
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.time.Duration.Companion.seconds
 
 class RoutingTest {
 
     @Test
     fun `ping server test`() = testApplication {
-        environment {
-            config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true",
-                "jwt.realm" to "message app",
-                "jwt.audience" to "user messenger app",
-                "jwt.issuer" to "http://0.0.0.0:8080/",
-                "jwt.secret" to "secretTest"
-            )
-        }
-
-        application.module()
+        setupEnvironment()
 
         val response = client.get("/ping")
         assertEquals("pong", response.bodyAsText())
@@ -57,29 +39,18 @@ class RoutingTest {
 
     @Test
     fun `test user create-get-delete`() = testApplication {
-        environment {
-            config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true",
-                "jwt.realm" to "message app",
-                "jwt.audience" to "user messenger app",
-                "jwt.issuer" to "http://0.0.0.0:8080/",
-                "jwt.secret" to "secretTest"
-            )
-        }
-        application.module()
+        setupEnvironment()
         client = createClient {
-            install(ContentNegotiation) {
-                json()
-            }
+            install(ContentNegotiation) { json() }
         }
 
         client.post("/createUser") {
             contentType(ContentType.Application.Json)
-            setBody(UserSearchReceive.ByTarget(name = "John-Tester", password = "abc-123"))
+            setBody(UserCreateReceive(name = "John-Tester", password = "abc-123"))
         }
         client.post("/createUser") {
             contentType(ContentType.Application.Json)
-            setBody(UserSearchReceive.ByTarget("Michel-Tester", password = "ice-cream"))
+            setBody(UserCreateReceive("Michel-Tester", password = "ice-cream"))
         }
 
         val searchedJohn = client.get("/searchUserByNameAndPw") {
@@ -114,16 +85,7 @@ class RoutingTest {
 
     @Test
     fun `test group create-delete`() = testApplication {
-        environment {
-            config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true",
-                "jwt.realm" to "message app",
-                "jwt.audience" to "user messenger app",
-                "jwt.issuer" to "http://0.0.0.0:8080/",
-                "jwt.secret" to "secretTest"
-            )
-        }
-        application.module()
+        setupEnvironment()
         client = createClient {
             install(ContentNegotiation) {
                 json()
@@ -231,16 +193,7 @@ class RoutingTest {
 
     @Test
     fun `test message`() = testApplication {
-        environment {
-            config = MapApplicationConfig(
-                "build.isDeveloperMode" to "true",
-                "jwt.realm" to "message app",
-                "jwt.audience" to "user messenger app",
-                "jwt.issuer" to "http://0.0.0.0:8080/",
-                "jwt.secret" to "secretTest"
-            )
-        }
-        application.module()
+        setupEnvironment()
         client = createClient {
             install(ContentNegotiation) { json() }
             install(WebSockets) {
@@ -290,12 +243,62 @@ class RoutingTest {
                         header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
                         parameter("targetGroupId", targetGroupId)
                     }) {
-                    assertEquals("Hello",  receiveDeserialized<Message>().content)
+                    assertEquals("Hello", receiveDeserialized<Message>().content)
                 }
             }
 
             alice.join()
             evelin.join()
         }
+    }
+
+    @Test
+    fun `test token`() = testApplication {
+        setupEnvironment()
+        client = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+        val createData = client.post("/createUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserCreateReceive(name = "Peter", password = "Freedom"))
+        }
+
+        assertEquals(Long::class, createData.body<UserCreated>().userId::class)
+        assertEquals(
+            LocalDateTime.now().plusDays(5).toLocalDate(),
+            JWT.decode(createData.body<UserCreated>().token).expiresAt
+                .toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+        )
+
+        delay(1.seconds)
+
+        val newToken = client.post("/token") {
+            contentType(ContentType.Application.Json)
+            setBody(UserCreateReceive(name = "Peter", password = "Freedom"))
+        }
+
+        assertNotEquals(
+            JWT.decode(createData.body<UserCreated>().token).expiresAt,
+            JWT.decode(newToken.body<String>()).expiresAt
+        )
+
+        client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = createData.body<UserCreated>().userId))
+        }
+    }
+
+    private fun ApplicationTestBuilder.setupEnvironment() {
+        environment {
+            config = MapApplicationConfig(
+                "build.isDeveloperMode" to "true",
+                "jwt.realm" to "message app",
+                "jwt.audience" to "user messenger app",
+                "jwt.issuer" to "http://0.0.0.0:8080/",
+                "jwt.secret" to "secretTest"
+            )
+        }
+        application.module()
     }
 }
