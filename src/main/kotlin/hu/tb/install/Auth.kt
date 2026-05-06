@@ -19,7 +19,7 @@ fun Application.installAuth() {
             realm = configRealm
             verifier(
                 JWT.require(
-                    Algorithm.HMAC256(configSecret ?: System.getenv("JWT-SECRET"))
+                    Algorithm.HMAC256(configSecret ?: System.getenv("JWT_SECRET"))
                 )
                     .withAudience(configAudience)
                     .withIssuer(configIssuer)
