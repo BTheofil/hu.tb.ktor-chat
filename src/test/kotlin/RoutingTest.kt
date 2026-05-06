@@ -25,7 +25,6 @@ import java.time.ZoneId
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class RoutingTest {
@@ -234,7 +233,7 @@ class RoutingTest {
                         parameter("targetGroupId", targetGroupId)
                     }) {
                     send(Frame.Text("Hello"))
-                    delay(200.milliseconds)
+                    receiveDeserialized<Message>()
                     assertEquals("Hi Alice, it's Evelin here", receiveDeserialized<Message>().content)
                     send(Frame.Close())
                 }
@@ -246,7 +245,6 @@ class RoutingTest {
                         header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
                         parameter("targetGroupId", targetGroupId)
                     }) {
-                    delay(100.milliseconds)
                     assertEquals("Hello", receiveDeserialized<Message>().content)
                     send(Frame.Text("Hi Alice, it's Evelin here"))
                     send(Frame.Close())
@@ -255,16 +253,6 @@ class RoutingTest {
 
             alice.join()
             evelin.join()
-
-            client.delete("/deleteUser") {
-                contentType(ContentType.Application.Json)
-                setBody(UserDeleteReceive(userId = aliceUser.userId))
-            }
-
-            client.delete("/deleteUser") {
-                contentType(ContentType.Application.Json)
-                setBody(UserDeleteReceive(userId = evelinUser.userId))
-            }
         }
 
         val messageHistory = client.get("/groupHistory") {
@@ -293,6 +281,14 @@ class RoutingTest {
         client.delete("/deleteMessage") {
             contentType(ContentType.Application.Json)
             setBody(MessageDeleteReceive(messageId = shorterMessageHistory.body<List<Message>>().first().id!!))
+        }
+        client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = aliceUser.userId))
+        }
+        client.delete("/deleteUser") {
+            contentType(ContentType.Application.Json)
+            setBody(UserDeleteReceive(userId = evelinUser.userId))
         }
     }
 

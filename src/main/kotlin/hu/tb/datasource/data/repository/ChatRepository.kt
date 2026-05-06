@@ -89,7 +89,7 @@ class ChatRepository {
         offset: Long
     ): List<Message> = transactionLogger {
         MessageEntity.find { MessageTable.group eq groupId }
-            .orderBy(MessageTable.timeStamp to SortOrder.DESC)
+            .orderBy(MessageTable.timeStamp to SortOrder.ASC)
             .limit(MESSAGE_PAGE_LIMIT)
             .offset(offset)
             .toList()
