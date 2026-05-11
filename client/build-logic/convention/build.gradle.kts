@@ -15,12 +15,20 @@ dependencies {
 gradlePlugin {
     plugins {
         register("androidApplication") {
-            id = "hutb.android.application"
+            id = libs.plugins.chat.android.application.asProvider().get().pluginId
             implementationClass = "AndroidApplicationConventionPlugin"
         }
         register("androidApplicationCompose") {
-            id = "hutb.android.application.compose"
+            id = libs.plugins.chat.android.application.compose.get().pluginId
             implementationClass = "AndroidApplicationComposeConventionPlugin"
+        }
+        register("androidLibrary") {
+            id = libs.plugins.chat.android.library.asProvider().get().pluginId
+            implementationClass = "AndroidLibraryConventionPlugin"
+        }
+        register("androidLibraryCompose") {
+            id = libs.plugins.chat.android.library.compose.get().pluginId
+            implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
     }
 }

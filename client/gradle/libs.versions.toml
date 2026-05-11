@@ -7,6 +7,7 @@ activityCompose = "1.13.0"
 kotlin = "2.3.21"
 composeBom = "2026.05.00"
 #ksp = "2.3.4"
+koin = "4.2.1"
 
 #Project settings
 minSdk = "26"
@@ -20,6 +21,8 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" } #used in build-logic/AndroidCompose.kt
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" } #used in build-logic/AndroidCompose.kt
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
@@ -33,5 +36,12 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 
-hutb-android-application = { id = "hutb.android.application" }
-hutb-android-application-compose = { id = "hutb.android.application.compose" }
+chat-android-application = { id = "chat.android.application" }
+chat-android-application-compose = { id = "chat.android.application.compose" }
+chat-android-library = { id = "chat.android.library" }
+chat-android-library-compose = { id = "chat.android.library.compose" }
+
+[bundles]
+koin = [
+    "koin", "koin-compose"
+]

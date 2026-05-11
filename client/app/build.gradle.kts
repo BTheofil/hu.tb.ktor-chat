@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.hutb.android.application)
-    alias(libs.plugins.hutb.android.application.compose)
+    alias(libs.plugins.chat.android.application)
+    alias(libs.plugins.chat.android.application.compose)
 }
 
 android {
