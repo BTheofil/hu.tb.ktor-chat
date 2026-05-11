@@ -1,6 +1,6 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hutb.android.application)
+    alias(libs.plugins.hutb.android.application.compose)
 }
 
 android {
@@ -8,9 +8,6 @@ android {
 
     defaultConfig {
         applicationId = "hu.tb.chat"
-        minSdk = 26
-        targetSdk = 37
-        compileSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -26,19 +23,11 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    buildFeatures {
-        compose = true
-    }
 }
 
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
 }
