@@ -8,6 +8,7 @@ kotlin = "2.3.21"
 composeBom = "2026.05.00"
 #ksp = "2.3.4"
 koin = "4.2.1"
+uiTextGoogleFonts = "1.11.1"
 
 #Project settings
 minSdk = "26"
@@ -15,11 +16,13 @@ compileSdk = "37"
 targetSdk = "37"
 
 [libraries]
+androidx-compose-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" } #used in build-logic/AndroidCompose.kt
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" } #used in build-logic/AndroidCompose.kt
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
@@ -40,6 +43,7 @@ chat-android-application = { id = "chat.android.application" }
 chat-android-application-compose = { id = "chat.android.application.compose" }
 chat-android-library = { id = "chat.android.library" }
 chat-android-library-compose = { id = "chat.android.library.compose" }
+chat-koin = { id = "chat.koin" }
 
 [bundles]
 koin = [

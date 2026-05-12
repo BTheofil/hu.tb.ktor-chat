@@ -31,3 +31,4 @@ rootProject.name = "Chat"
 include(":app")
 include(":auth:presentation")
 include(":auth:data")
+include(":core:ui")

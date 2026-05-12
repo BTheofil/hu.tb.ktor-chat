@@ -17,7 +17,7 @@ class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
             configureAndroidCompose(extension)
 
             dependencies {
-                "implementation"(project.libs.findBundle("koin").get())
+                "implementation"(project.libs.findLibrary("androidx-compose-material3").get())
             }
         }
     }

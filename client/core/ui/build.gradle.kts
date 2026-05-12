@@ -1,12 +1,11 @@
 plugins {
     alias(libs.plugins.chat.android.library.compose)
-    alias(libs.plugins.chat.koin)
 }
 
 android {
-    namespace = "hu.tb.auth.presentation"
+    namespace = "hu.tb.ui"
 }
 
 dependencies {
-
+    implementation(libs.androidx.compose.ui.text.google.fonts)
 }
