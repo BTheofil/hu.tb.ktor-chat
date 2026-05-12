@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.chat.android.application)
     alias(libs.plugins.chat.android.application.compose)
+    alias(libs.plugins.chat.koin)
 }
 
 android {
@@ -26,8 +27,11 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.ui)
+    implementation(projects.auth.data)
+    implementation(projects.auth.presentation)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.compose.material3)
+
 }
