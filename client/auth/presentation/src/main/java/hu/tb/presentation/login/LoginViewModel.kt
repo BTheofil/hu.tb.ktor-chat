@@ -8,4 +8,8 @@ class LoginViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(LoginState())
     val state = _state.asStateFlow()
+
+    fun onEnter() {
+
+    }
 }

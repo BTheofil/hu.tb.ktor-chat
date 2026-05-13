@@ -9,6 +9,7 @@ composeBom = "2026.05.00"
 #ksp = "2.3.4"
 koin = "4.2.1"
 uiTextGoogleFonts = "1.11.1"
+ktor = "3.4.3"
 
 #Project settings
 minSdk = "26"
@@ -22,10 +23,12 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" } #used in build-logic/AndroidCompose.kt
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" } #used in build-logic/AndroidCompose.kt
-androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" } #used in build-logic/AndroidCompose.kt
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" } #used in build-logic/AndroidLibComposeConventionPlugin.kt
 koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
@@ -44,8 +47,12 @@ chat-android-application-compose = { id = "chat.android.application.compose" }
 chat-android-library = { id = "chat.android.library" }
 chat-android-library-compose = { id = "chat.android.library.compose" }
 chat-koin = { id = "chat.koin" }
+chat-ktor = { id = "chat.ktor" }
 
 [bundles]
 koin = [
     "koin", "koin-compose"
+]
+ktor = [
+    "ktor-core", "ktor-okhttp"
 ]

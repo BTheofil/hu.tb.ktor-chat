@@ -34,5 +34,9 @@ gradlePlugin {
             id = libs.plugins.chat.koin.get().pluginId
             implementationClass = "KoinConventionPlugin"
         }
+        register("ktor") {
+            id = libs.plugins.chat.ktor.get().pluginId
+            implementationClass = "KtorConventionPlugin"
+        }
     }
 }
