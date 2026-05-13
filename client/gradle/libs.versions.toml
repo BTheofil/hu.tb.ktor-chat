@@ -29,6 +29,8 @@ koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
+ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-seralization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
@@ -48,11 +50,12 @@ chat-android-library = { id = "chat.android.library" }
 chat-android-library-compose = { id = "chat.android.library.compose" }
 chat-koin = { id = "chat.koin" }
 chat-ktor = { id = "chat.ktor" }
+chat-jvm-library = { id = "chat.jvm.library" }
 
 [bundles]
 koin = [
     "koin", "koin-compose"
 ]
 ktor = [
-    "ktor-core", "ktor-okhttp"
+    "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json"
 ]

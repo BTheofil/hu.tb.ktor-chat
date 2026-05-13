@@ -30,8 +30,4 @@ dependencies {
     implementation(projects.core.ui)
     implementation(projects.auth.data)
     implementation(projects.auth.presentation)
-
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-
 }

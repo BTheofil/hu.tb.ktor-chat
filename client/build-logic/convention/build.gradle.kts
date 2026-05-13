@@ -38,5 +38,9 @@ gradlePlugin {
             id = libs.plugins.chat.ktor.get().pluginId
             implementationClass = "KtorConventionPlugin"
         }
+        register("jvmLibrary") {
+            id = libs.plugins.chat.jvm.library.get().pluginId
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
     }
 }

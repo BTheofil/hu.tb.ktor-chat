@@ -1,6 +1,7 @@
 package hu.tb.chat
 
 import android.app.Application
+import hu.tb.data.di.authDataModule
 import hu.tb.presentation.di.authPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -13,7 +14,10 @@ class ChatApplication : Application() {
         startKoin {
             androidLogger()
             androidContext(this@ChatApplication)
-            modules(authPresentationModule)
+            modules(
+                authDataModule,
+                authPresentationModule
+            )
         }
     }
 }
