@@ -10,6 +10,9 @@ composeBom = "2026.05.00"
 koin = "4.2.1"
 uiTextGoogleFonts = "1.11.1"
 ktor = "3.4.3"
+datastoreVersion = "1.2.1"
+kotlinxSerJson = "1.11.0"
+kotlinxSerJsonPlugin = "2.3.21"
 
 #Project settings
 minSdk = "26"
@@ -31,6 +34,8 @@ ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor"
 ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-seralization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastoreVersion" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerJson" }
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle-api", version.ref = "agp" }
@@ -43,6 +48,7 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlinx-serialization-json = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxSerJsonPlugin" }
 
 chat-android-application = { id = "chat.android.application" }
 chat-android-application-compose = { id = "chat.android.application.compose" }
@@ -58,4 +64,7 @@ koin = [
 ]
 ktor = [
     "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json"
+]
+datastore = [
+    "datastore", "kotlinx-serialization-json"
 ]

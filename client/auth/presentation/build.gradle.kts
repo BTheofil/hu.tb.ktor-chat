@@ -11,4 +11,5 @@ dependencies {
     implementation(projects.designSystem)
     implementation(projects.auth.data)
     implementation(projects.auth.domain)
+    implementation(projects.datastore)
 }

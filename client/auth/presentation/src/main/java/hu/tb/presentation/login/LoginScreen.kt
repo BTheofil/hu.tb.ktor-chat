@@ -28,13 +28,15 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel()
 ) {
     LoginScreen(
-        state = viewModel.state.collectAsStateWithLifecycle().value
+        state = viewModel.state.collectAsStateWithLifecycle().value,
+        onEnter = viewModel::onEnter
     )
 }
 
 @Composable
 private fun LoginScreen(
-    state: LoginState
+    state: LoginState,
+    onEnter: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -93,7 +95,7 @@ private fun LoginScreen(
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
-            onClick = {},
+            onClick = onEnter,
             content = {
                 Text(
                     text = "Enter",
@@ -110,7 +112,8 @@ private fun LoginScreen(
 private fun LoginScreenPreview() {
     ChatTheme {
         LoginScreen(
-            state = LoginState()
+            state = LoginState(),
+            onEnter = {}
         )
     }
 }
