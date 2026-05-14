@@ -1,10 +1,10 @@
-package hu.tb.ui.ui.theme
+package hu.tb.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import hu.tb.ui.R
+import hu.tb.design_system.R
 
 val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",

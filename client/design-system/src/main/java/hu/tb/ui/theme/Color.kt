@@ -1,4 +1,4 @@
-package hu.tb.ui.ui.theme
+package hu.tb.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

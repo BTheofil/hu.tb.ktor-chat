@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "hu.tb.ui"
+    namespace = "hu.tb.design_system"
 }
 
 dependencies {

@@ -1,4 +1,4 @@
-package hu.tb.ui.ui.theme
+package hu.tb.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

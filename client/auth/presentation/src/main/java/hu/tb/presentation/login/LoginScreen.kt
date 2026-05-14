@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import hu.tb.ui.ui.theme.ChatTheme
+import hu.tb.ui.theme.ChatTheme
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

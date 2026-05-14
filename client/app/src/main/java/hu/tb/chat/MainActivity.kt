@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import hu.tb.presentation.login.LoginScreen
-import hu.tb.ui.ui.theme.ChatTheme
+import hu.tb.ui.theme.ChatTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
