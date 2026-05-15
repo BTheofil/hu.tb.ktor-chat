@@ -17,7 +17,7 @@ val authDataModule = module {
                 json(Json { prettyPrint = true })
             }
             defaultRequest {
-                url("baseurl")
+                url("http://[2a01:4f9:c014:f7e9::1]")
             }
         }
     }

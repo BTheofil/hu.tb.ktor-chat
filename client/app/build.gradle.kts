@@ -27,7 +27,8 @@ android {
 }
 
 dependencies {
-    implementation(projects.designSystem)
     implementation(projects.auth.data)
     implementation(projects.auth.presentation)
+    implementation(projects.datastore)
+    implementation(projects.designSystem)
 }
