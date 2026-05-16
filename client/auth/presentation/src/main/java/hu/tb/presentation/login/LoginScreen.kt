@@ -1,45 +1,91 @@
 package hu.tb.presentation.login
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import hu.tb.domain.ServerStatus
 import hu.tb.ui.theme.ChatTheme
+import hu.tb.ui.theme.Icon
 import org.koin.androidx.compose.koinViewModel
+import kotlin.time.DurationUnit
+import kotlin.time.ExperimentalTime
+import kotlin.time.toDuration
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel = koinViewModel()
+    viewModel: LoginViewModel = koinViewModel(),
+    navigationRequest: () -> Unit
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            if (event is LoginEvent.LoginSuccess) {
+                navigationRequest()
+            }
+        }
+    }
+
     LoginScreen(
         state = viewModel.state.collectAsStateWithLifecycle().value,
-        onEnter = viewModel::onEnter
+        action = viewModel::action
     )
 }
 
 @Composable
 private fun LoginScreen(
     state: LoginState,
-    onEnter: () -> Unit
+    action: (LoginAction) -> Unit
+) {
+    Scaffold { innerPadding ->
+        Form(
+            modifier = Modifier.padding(innerPadding),
+            state = state,
+            action = action
+        )
+        Status(
+            modifier = Modifier.padding(innerPadding),
+            state = state,
+            action = action
+        )
+    }
+
+}
+
+@Composable
+fun Form(
+    modifier: Modifier = Modifier,
+    state: LoginState,
+    action: (LoginAction) -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 brush = Brush.linearGradient(
@@ -56,7 +102,7 @@ private fun LoginScreen(
         Text(
             "Welcome",
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.primary,
         )
         Spacer(Modifier.height(4.dp))
         Text(
@@ -76,7 +122,8 @@ private fun LoginScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
+            },
+            enabled = !state.isLoading
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -89,21 +136,73 @@ private fun LoginScreen(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
-            }
+            },
+            enabled = !state.isLoading
         )
         Spacer(Modifier.height(32.dp))
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
-            onClick = onEnter,
+            onClick = { action(LoginAction.Enter) },
             content = {
-                Text(
-                    text = "Enter",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            }
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(
+                            with(LocalDensity.current) { MaterialTheme.typography.bodyLarge.fontSize.toDp() }
+                        ),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Text(
+                        text = "Enter",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            },
+            enabled = !state.isLoading
         )
+    }
+}
+
+@OptIn(ExperimentalTime::class)
+@Composable
+fun Status(
+    modifier: Modifier = Modifier,
+    state: LoginState,
+    action: (LoginAction) -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp)
+            .padding(horizontal = 32.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    onClick = { action(LoginAction.ServerCheck) },
+                    indication = null,
+                    interactionSource = null
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                painterResource(Icon.database),
+                contentDescription = "server state icon",
+                tint = when (state.serverStatus) {
+                    ServerStatus.ALIVE -> MaterialTheme.colorScheme.primary
+                    ServerStatus.DEAD -> MaterialTheme.colorScheme.error
+                }
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "Last time checked: ${state.serverCheckedTime.toDuration(DurationUnit.MINUTES)} ago ",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary
+            )
+        }
     }
 }
 
@@ -112,8 +211,10 @@ private fun LoginScreen(
 private fun LoginScreenPreview() {
     ChatTheme {
         LoginScreen(
-            state = LoginState(),
-            onEnter = {}
+            state = LoginState(
+                isLoading = true
+            ),
+            action = {}
         )
     }
 }

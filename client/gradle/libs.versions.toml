@@ -9,10 +9,11 @@ composeBom = "2026.05.00"
 #ksp = "2.3.4"
 koin = "4.2.1"
 uiTextGoogleFonts = "1.11.1"
-ktor = "3.4.3"
+ktor = "3.5.0"
 datastoreVersion = "1.2.1"
 kotlinxSerJson = "1.11.0"
 kotlinxSerJsonPlugin = "2.3.21"
+nav3Core = "1.1.1"
 
 #Project settings
 minSdk = "26"
@@ -28,6 +29,8 @@ androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", versi
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" } #used in build-logic/AndroidCompose.kt
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" } #used in build-logic/AndroidCompose.kt
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" } #used in build-logic/AndroidLibComposeConventionPlugin.kt
+androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
+androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -67,4 +70,7 @@ ktor = [
 ]
 datastore = [
     "datastore", "kotlinx-serialization-json"
+]
+nav3 = [
+    "androidx-navigation3-runtime", "androidx-navigation3-ui"
 ]

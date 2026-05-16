@@ -31,4 +31,5 @@ dependencies {
     implementation(projects.auth.presentation)
     implementation(projects.datastore)
     implementation(projects.designSystem)
+    implementation(projects.navigator)
 }

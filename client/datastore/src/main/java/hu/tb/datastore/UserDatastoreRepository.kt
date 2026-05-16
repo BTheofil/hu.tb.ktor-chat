@@ -12,13 +12,15 @@ class UserDatastoreRepository(
     suspend fun updateUserData(
         name: String? = null,
         password: String? = null,
-        token: String? = null
+        token: String? = null,
+        lastTokenUsed: Long? = null
     ) {
         context.userDataStore.updateData { userData ->
             userData.copy(
                 name = name ?: userData.name,
                 password = password ?: userData.password,
-                token = token ?: userData.token
+                token = token ?: userData.token,
+                lastTokenUsed = lastTokenUsed ?: userData.lastTokenUsed
             )
         }
     }

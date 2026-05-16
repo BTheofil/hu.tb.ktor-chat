@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import hu.tb.presentation.login.LoginScreen
+import hu.tb.navigator.Navigator
 import hu.tb.ui.theme.ChatTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ChatTheme {
-                LoginScreen()
+                Navigator()
             }
         }
     }
