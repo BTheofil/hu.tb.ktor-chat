@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -31,13 +32,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.domain.ServerStatus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
 import org.koin.androidx.compose.koinViewModel
-import kotlin.time.DurationUnit
-import kotlin.time.ExperimentalTime
-import kotlin.time.toDuration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun LoginScreen(
@@ -165,13 +166,18 @@ fun Form(
     }
 }
 
-@OptIn(ExperimentalTime::class)
+@TraceRecomposition
 @Composable
 fun Status(
     modifier: Modifier = Modifier,
     state: LoginState,
     action: (LoginAction) -> Unit
 ) {
+    val ago = remember(state.serverCheckedTime) {
+        LocalTime.parse(state.serverCheckedTime)
+            .format(DateTimeFormatter.ofPattern("HH:mm"))
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -198,7 +204,7 @@ fun Status(
             )
             Spacer(Modifier.width(8.dp))
             Text(
-                "Last time checked: ${state.serverCheckedTime.toDuration(DurationUnit.MINUTES)} ago ",
+                "Last time checked: $ago",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.secondary
             )

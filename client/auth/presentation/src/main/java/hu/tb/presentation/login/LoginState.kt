@@ -9,5 +9,5 @@ data class LoginState(
     val isLoginHasError: Boolean = false,
     val isLoading: Boolean = false,
     val serverStatus: ServerStatus = ServerStatus.DEAD,
-    val serverCheckedTime: Long = 0L
+    val serverCheckedTime: String = "00:00"
 )

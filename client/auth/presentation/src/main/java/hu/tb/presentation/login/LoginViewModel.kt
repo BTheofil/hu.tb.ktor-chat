@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Clock
+import java.time.LocalTime
 
 class LoginViewModel(
     private val loginRepository: LoginRepository,
@@ -52,7 +52,7 @@ class LoginViewModel(
                 name = state.value.username.toString(),
                 password = state.value.password.text.toString(),
                 token = token.value,
-                lastTokenUsed = Clock.System.now().toEpochMilliseconds()
+                lastTokenUsed = LocalTime.now().toString()
             )
             _state.update { it.copy(isLoginHasError = false) }
             _event.send(LoginEvent.LoginSuccess)
@@ -65,7 +65,7 @@ class LoginViewModel(
             _state.update {
                 it.copy(
                     serverStatus = status,
-                    serverCheckedTime = Clock.System.now().toEpochMilliseconds()
+                    serverCheckedTime = LocalTime.now().toString()
                 )
             }
         }
