@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "hu.tb"
-version = "1.0.1"
+version = "1.0.2"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")
@@ -24,6 +24,12 @@ jib {
     }
 }
 
+ktor {
+    openApi {
+        enabled = true
+    }
+}
+
 dependencies {
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.serialization.kotlinx.json)
@@ -34,6 +40,8 @@ dependencies {
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.websockets.serialization)
     implementation(ktorLibs.server.callLogging)
+    implementation(ktorLibs.server.swagger)
+    implementation(ktorLibs.server.routingOpenapi)
     implementation(otherLibs.logger.classic)
     implementation(otherLibs.bundles.koin)
     implementation(otherLibs.bundles.exposed)
