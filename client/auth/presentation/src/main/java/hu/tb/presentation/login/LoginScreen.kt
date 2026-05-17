@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -27,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,6 +43,7 @@ import org.koin.androidx.compose.koinViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
+@Suppress("ParamsComparedByRef")
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel(),
@@ -59,12 +63,22 @@ fun LoginScreen(
     )
 }
 
+@TraceRecomposition
 @Composable
 private fun LoginScreen(
     state: LoginState,
     action: (LoginAction) -> Unit
 ) {
-    Scaffold { innerPadding ->
+    val focusManager = LocalFocusManager.current
+
+    Scaffold(
+        modifier = Modifier
+            .clickable(
+                onClick = { focusManager.clearFocus() },
+                indication = null,
+                interactionSource = null
+            )
+    ) { innerPadding ->
         Form(
             modifier = Modifier.padding(innerPadding),
             state = state,
@@ -79,6 +93,7 @@ private fun LoginScreen(
 
 }
 
+@TraceRecomposition
 @Composable
 fun Form(
     modifier: Modifier = Modifier,
@@ -96,6 +111,7 @@ fun Form(
                     )
                 )
             )
+            .verticalScroll(rememberScrollState())
             .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -124,7 +140,8 @@ fun Form(
                     color = MaterialTheme.colorScheme.primary
                 )
             },
-            enabled = !state.isLoading
+            enabled = !state.isLoginLoading,
+            isError = state.isUsernameHasError
         )
         Spacer(Modifier.height(8.dp))
         OutlinedTextField(
@@ -138,7 +155,8 @@ fun Form(
                     color = MaterialTheme.colorScheme.primary
                 )
             },
-            enabled = !state.isLoading
+            enabled = !state.isLoginLoading,
+            isError = state.isPasswordHasError
         )
         Spacer(Modifier.height(32.dp))
         Button(
@@ -146,7 +164,7 @@ fun Form(
                 .fillMaxWidth(),
             onClick = { action(LoginAction.Enter) },
             content = {
-                if (state.isLoading) {
+                if (state.isLoginLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(
                             with(LocalDensity.current) { MaterialTheme.typography.bodyLarge.fontSize.toDp() }
@@ -161,7 +179,8 @@ fun Form(
                     )
                 }
             },
-            enabled = !state.isLoading
+            enabled = !state.isLoginLoading &&
+                    state.serverStatus == ServerStatus.ALIVE
         )
     }
 }
@@ -194,14 +213,22 @@ fun Status(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                painterResource(Icon.database),
-                contentDescription = "server state icon",
-                tint = when (state.serverStatus) {
-                    ServerStatus.ALIVE -> MaterialTheme.colorScheme.primary
-                    ServerStatus.DEAD -> MaterialTheme.colorScheme.error
-                }
-            )
+            if (state.isServerCheckLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            } else {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(Icon.database),
+                    contentDescription = "server state icon",
+                    tint = when (state.serverStatus) {
+                        ServerStatus.ALIVE -> MaterialTheme.colorScheme.primary
+                        ServerStatus.DEAD -> MaterialTheme.colorScheme.error
+                    }
+                )
+            }
             Spacer(Modifier.width(8.dp))
             Text(
                 "Last time checked: $ago",
@@ -218,7 +245,7 @@ private fun LoginScreenPreview() {
     ChatTheme {
         LoginScreen(
             state = LoginState(
-                isLoading = true
+                serverStatus = ServerStatus.ALIVE
             ),
             action = {}
         )

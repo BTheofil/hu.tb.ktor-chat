@@ -5,9 +5,12 @@ import hu.tb.domain.ServerStatus
 
 data class LoginState(
     val username: TextFieldState = TextFieldState(),
+    val isUsernameHasError: Boolean = false,
     val password: TextFieldState = TextFieldState(),
+    val isPasswordHasError: Boolean = false,
     val isLoginHasError: Boolean = false,
-    val isLoading: Boolean = false,
+    val isLoginLoading: Boolean = false,
     val serverStatus: ServerStatus = ServerStatus.DEAD,
-    val serverCheckedTime: String = "00:00"
+    val serverCheckedTime: String = "00:00",
+    val isServerCheckLoading: Boolean = false
 )

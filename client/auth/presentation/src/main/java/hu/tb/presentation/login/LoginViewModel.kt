@@ -6,12 +6,14 @@ import hu.tb.data.LoginRepository
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.LocalTime
+import kotlin.time.Duration.Companion.milliseconds
 
 class LoginViewModel(
     private val loginRepository: LoginRepository,
@@ -36,6 +38,14 @@ class LoginViewModel(
     }
 
     private fun profileLogin() {
+        _state.update {
+            it.copy(
+                isUsernameHasError = state.value.username.text.isEmpty(),
+                isPasswordHasError = state.value.password.text.isEmpty()
+            )
+        }
+        if (state.value.isUsernameHasError || state.value.isPasswordHasError) return
+
         viewModelScope.launch {
             val loginInfo = LoginInfo(
                 username = state.value.username.toString(),
@@ -61,11 +71,14 @@ class LoginViewModel(
 
     private fun serverCheck() {
         viewModelScope.launch {
+            _state.update { it.copy(isServerCheckLoading = true) }
+            delay(5.milliseconds)
             val status = loginRepository.pingServer()
             _state.update {
                 it.copy(
                     serverStatus = status,
-                    serverCheckedTime = LocalTime.now().toString()
+                    serverCheckedTime = LocalTime.now().toString(),
+                    isServerCheckLoading = false
                 )
             }
         }
