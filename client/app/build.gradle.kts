@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.chat.android.application)
     alias(libs.plugins.chat.android.application.compose)
-    alias(libs.plugins.chat.koin)
 }
 
 android {
@@ -32,4 +31,6 @@ dependencies {
     implementation(projects.datastore)
     implementation(projects.designSystem)
     implementation(projects.navigator)
+
+    implementation(libs.bundles.koin)
 }

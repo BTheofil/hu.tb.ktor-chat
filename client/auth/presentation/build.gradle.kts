@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.chat.android.library.compose)
-    alias(libs.plugins.chat.koin)
     alias(libs.plugins.stability.analyzer)
 }
 
@@ -13,4 +12,6 @@ dependencies {
     implementation(projects.auth.data)
     implementation(projects.auth.domain)
     implementation(projects.datastore)
+
+    implementation(libs.bundles.koin)
 }

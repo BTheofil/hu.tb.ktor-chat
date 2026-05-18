@@ -7,4 +7,6 @@ object Icon {
     val wifi_off = R.drawable.wifi_off
     val database = R.drawable.database
     val database_off = R.drawable.database_off
+    val visibility = R.drawable.visibility
+    val visibility_off = R.drawable.visibility_off
 }

@@ -14,11 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedSecureTextField
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -31,6 +36,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -100,6 +106,8 @@ fun Form(
     state: LoginState,
     action: (LoginAction) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -141,10 +149,12 @@ fun Form(
                 )
             },
             enabled = !state.isLoginLoading,
-            isError = state.isUsernameHasError
+            isError = state.isUsernameHasError,
+            lineLimits = TextFieldLineLimits.SingleLine,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
         )
         Spacer(Modifier.height(8.dp))
-        OutlinedTextField(
+        OutlinedSecureTextField(
             modifier = Modifier
                 .fillMaxWidth(),
             state = state.password,
@@ -155,10 +165,37 @@ fun Form(
                     color = MaterialTheme.colorScheme.primary
                 )
             },
+            trailingIcon = {
+                IconButton(
+                    onClick = { action(LoginAction.TogglePasswordVisibility) },
+                    content = {
+                        Icon(
+                            painter = painterResource(if (state.isPasswordVisible) Icon.visibility else Icon.visibility_off),
+                            contentDescription = "password visibility icon",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                )
+            },
             enabled = !state.isLoginLoading,
-            isError = state.isPasswordHasError
+            isError = state.isPasswordHasError,
+            textObfuscationMode =
+                if (state.isPasswordVisible) TextObfuscationMode.Visible
+                else TextObfuscationMode.RevealLastTyped,
+            onKeyboardAction = { performDefaultAction ->
+                focusManager.clearFocus()
+                performDefaultAction()
+            }
         )
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(16.dp))
+        if (state.isLoginHasError) {
+            Text(
+                "Something went wrong from the server side",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.error
+            )
+        }
+        Spacer(Modifier.height(16.dp))
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -219,14 +256,15 @@ fun Status(
                     color = MaterialTheme.colorScheme.primary
                 )
             } else {
+                val statUi = when (state.serverStatus) {
+                    ServerStatus.ALIVE -> Pair(MaterialTheme.colorScheme.primary, Icon.database)
+                    ServerStatus.DEAD -> Pair(MaterialTheme.colorScheme.error, Icon.database_off)
+                }
                 Icon(
                     modifier = Modifier.size(24.dp),
-                    painter = painterResource(Icon.database),
+                    painter = painterResource(statUi.second),
                     contentDescription = "server state icon",
-                    tint = when (state.serverStatus) {
-                        ServerStatus.ALIVE -> MaterialTheme.colorScheme.primary
-                        ServerStatus.DEAD -> MaterialTheme.colorScheme.error
-                    }
+                    tint = statUi.first
                 )
             }
             Spacer(Modifier.width(8.dp))

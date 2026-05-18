@@ -59,8 +59,6 @@ chat-android-application = { id = "chat.android.application" }
 chat-android-application-compose = { id = "chat.android.application.compose" }
 chat-android-library = { id = "chat.android.library" }
 chat-android-library-compose = { id = "chat.android.library.compose" }
-chat-koin = { id = "chat.koin" }
-chat-ktor = { id = "chat.ktor" }
 chat-jvm-library = { id = "chat.jvm.library" }
 
 [bundles]

@@ -30,14 +30,6 @@ gradlePlugin {
             id = libs.plugins.chat.android.library.compose.get().pluginId
             implementationClass = "AndroidLibraryComposeConventionPlugin"
         }
-        register("koin") {
-            id = libs.plugins.chat.koin.get().pluginId
-            implementationClass = "KoinConventionPlugin"
-        }
-        register("ktor") {
-            id = libs.plugins.chat.ktor.get().pluginId
-            implementationClass = "KtorConventionPlugin"
-        }
         register("jvmLibrary") {
             id = libs.plugins.chat.jvm.library.get().pluginId
             implementationClass = "JvmLibraryConventionPlugin"

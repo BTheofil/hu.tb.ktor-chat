@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.chat.android.library)
-    alias(libs.plugins.chat.koin)
     alias(libs.plugins.kotlinx.serialization.json)
 }
 
@@ -10,4 +9,5 @@ android {
 
 dependencies {
     implementation(libs.bundles.datastore)
+    implementation(libs.bundles.koin)
 }

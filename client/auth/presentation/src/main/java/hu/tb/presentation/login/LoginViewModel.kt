@@ -34,6 +34,7 @@ class LoginViewModel(
         when (action) {
             LoginAction.Enter -> profileLogin()
             LoginAction.ServerCheck -> serverCheck()
+            LoginAction.TogglePasswordVisibility -> togglePasswordVisibility()
         }
     }
 
@@ -48,7 +49,7 @@ class LoginViewModel(
 
         viewModelScope.launch {
             val loginInfo = LoginInfo(
-                username = state.value.username.toString(),
+                username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
             val token = loginRepository.handleLogin(loginInfo)
@@ -81,6 +82,14 @@ class LoginViewModel(
                     isServerCheckLoading = false
                 )
             }
+        }
+    }
+
+    private fun togglePasswordVisibility() {
+        _state.update {
+            it.copy(
+                isPasswordVisible = !state.value.isPasswordVisible
+            )
         }
     }
 }

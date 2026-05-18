@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.chat.android.library)
-    alias(libs.plugins.chat.koin)
-    alias(libs.plugins.chat.ktor)
+    kotlin("plugin.serialization") version "2.3.21"
 }
 
 android {
@@ -9,4 +8,7 @@ android {
 }
 dependencies {
     implementation(projects.auth.domain)
+
+    implementation(libs.bundles.koin)
+    implementation(libs.bundles.ktor)
 }

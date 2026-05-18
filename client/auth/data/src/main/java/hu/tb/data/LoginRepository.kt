@@ -33,7 +33,7 @@ class LoginRepository(
                 contentType(ContentType.Application.Json)
                 setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
             }
-            if (existUserResponse.status == HttpStatusCode.NotFound) {
+            if (existUserResponse.status in HttpStatusCode.BadRequest..HttpStatusCode.NotFound) {
                 val newUserResponse = client.post("/createUser") {
                     contentType(ContentType.Application.Json)
                     setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
