@@ -21,5 +21,5 @@ class TokenGeneratorService {
             .withClaim("userId", userId)
             .withClaim("username", username)
             .withExpiresAt(Date(System.currentTimeMillis() + expireDuration.inWholeMilliseconds))
-            .sign(Algorithm.HMAC256(generateInfo.secret ?: System.getenv("JWT-SECRET")))
+            .sign(Algorithm.HMAC256(generateInfo.secret ?: System.getenv("JWT_SECRET")))
 }
