@@ -6,6 +6,7 @@ import io.ktor.server.application.*
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.koin.ktor.plugin.Koin
 import org.koin.logger.slf4jLogger
+import java.io.File
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -35,8 +36,13 @@ private fun Application.connectDatabase() {
             "org.sqlite.JDBC"
         )
     } else {
+        val dockerDbFile = File("app/database/app.db")
+        val dbPath = if (dockerDbFile.parentFile?.exists() == true)
+            dockerDbFile.absoluteFile
+        else "build/data.db"
+
         Database.connect(
-            url = "jdbc:sqlite:build/data.db",
+            url = "jdbc:sqlite:$dbPath",
             driver = "org.sqlite.JDBC"
         )
     }
