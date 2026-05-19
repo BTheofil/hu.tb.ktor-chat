@@ -27,6 +27,11 @@ class LoginRepository(
             ServerStatus.DEAD
         }
 
+    /**
+     * the provided login data check if the user profile already exist, if not than create a new account
+     * @param hu.tb.domain.LoginInfo username: String, password: String
+     * @return hu.tb.domain.Token - value:String
+     **/
     suspend fun handleLogin(loginInfo: LoginInfo): Token? =
         try {
             val existUserResponse = client.post("/token") {
@@ -49,4 +54,17 @@ class LoginRepository(
             e.printStackTrace()
             return null
         }
+
+    suspend fun autoLogin(loginInfo: LoginInfo): Token? {
+        try {
+            val tokenResponse = client.post("/token") {
+                contentType(ContentType.Application.Json)
+                setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
+            }
+            return Token(value = tokenResponse.body<String>())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
 }

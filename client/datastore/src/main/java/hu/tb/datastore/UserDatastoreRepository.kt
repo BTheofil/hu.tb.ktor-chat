@@ -13,14 +13,14 @@ class UserDatastoreRepository(
         name: String? = null,
         password: String? = null,
         token: String? = null,
-        lastTokenUsed: String? = null
+        tokenRefreshDate: String? = null
     ) {
         context.userDataStore.updateData { userData ->
             userData.copy(
                 name = name ?: userData.name,
                 password = password ?: userData.password,
                 token = token ?: userData.token,
-                lastTokenUsed = lastTokenUsed ?: userData.lastTokenUsed
+                tokenRefreshDate = tokenRefreshDate ?: userData.tokenRefreshDate
             )
         }
     }

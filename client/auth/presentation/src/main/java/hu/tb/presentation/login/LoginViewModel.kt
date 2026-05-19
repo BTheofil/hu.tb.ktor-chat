@@ -1,5 +1,6 @@
 package hu.tb.presentation.login
 
+import androidx.compose.foundation.text.input.insert
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.data.LoginRepository
@@ -9,9 +10,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -27,6 +30,7 @@ class LoginViewModel(
     val event = _event.receiveAsFlow()
 
     init {
+        autoLogin()
         serverCheck()
     }
 
@@ -35,6 +39,34 @@ class LoginViewModel(
             LoginAction.Enter -> profileLogin()
             LoginAction.ServerCheck -> serverCheck()
             LoginAction.TogglePasswordVisibility -> togglePasswordVisibility()
+        }
+    }
+
+    private fun autoLogin() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoginLoading = true) }
+
+            val userData = userDatastoreRepository.userdataFlow().first()
+            if (userData.token.isEmpty()) {
+                _state.update { it.copy(isLoginLoading = false) }
+                return@launch
+            }
+
+            state.value.username.edit { insert(0, userData.name) }
+            state.value.password.edit { insert(0, userData.password) }
+
+            val newToken = loginRepository.autoLogin(LoginInfo(userData.name, userData.password))
+            if (newToken == null) {
+                _state.update { it.copy(isLoginLoading = false) }
+                return@launch
+            }
+
+            userDatastoreRepository.updateUserData(
+                token = newToken.value,
+                tokenRefreshDate = LocalDateTime.now().toString()
+            )
+
+            _event.send(LoginEvent.LoginSuccess)
         }
     }
 
@@ -60,10 +92,10 @@ class LoginViewModel(
             }
 
             userDatastoreRepository.updateUserData(
-                name = state.value.username.toString(),
+                name = state.value.username.text.toString(),
                 password = state.value.password.text.toString(),
                 token = token.value,
-                lastTokenUsed = LocalTime.now().toString()
+                tokenRefreshDate = LocalDateTime.now().toString()
             )
             _state.update { it.copy(isLoginHasError = false) }
             _event.send(LoginEvent.LoginSuccess)
