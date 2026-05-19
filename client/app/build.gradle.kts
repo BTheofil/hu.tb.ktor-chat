@@ -27,10 +27,12 @@ android {
 
 dependencies {
     implementation(projects.auth.data)
+    implementation(projects.auth.domain)
     implementation(projects.auth.presentation)
     implementation(projects.datastore)
     implementation(projects.designSystem)
     implementation(projects.navigator)
 
     implementation(libs.bundles.koin)
+    implementation(libs.androidx.core.splashscreen)
 }

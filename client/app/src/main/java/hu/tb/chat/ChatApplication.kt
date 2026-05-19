@@ -7,6 +7,8 @@ import hu.tb.presentation.di.authPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
+import org.koin.core.module.dsl.viewModelOf
+import org.koin.dsl.module
 
 class ChatApplication : Application() {
     override fun onCreate() {
@@ -18,7 +20,8 @@ class ChatApplication : Application() {
             modules(
                 authDataModule,
                 authPresentationModule,
-                datastoreModule
+                datastoreModule,
+                module { viewModelOf(::MainViewModel) }
             )
         }
     }
