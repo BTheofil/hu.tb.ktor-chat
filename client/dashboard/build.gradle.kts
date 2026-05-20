@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.chat.android.library.compose)
+    alias(libs.plugins.stability.analyzer)
 }
 
 android {
@@ -7,5 +8,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.designSystem)
 
+    implementation(libs.bundles.koin)
 }

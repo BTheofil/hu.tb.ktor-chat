@@ -1,6 +1,7 @@
 package hu.tb.chat
 
 import android.app.Application
+import hu.tb.dashboard.di.dashboardModule
 import hu.tb.data.di.authDataModule
 import hu.tb.datastore.di.datastoreModule
 import hu.tb.presentation.di.authPresentationModule
@@ -21,6 +22,7 @@ class ChatApplication : Application() {
                 authDataModule,
                 authPresentationModule,
                 datastoreModule,
+                dashboardModule,
                 module { viewModelOf(::MainViewModel) }
             )
         }
