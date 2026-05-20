@@ -1,10 +1,10 @@
-package hu.tb.data
+package hu.tb.network.login
 
-import hu.tb.data.model.response.UserResponse
-import hu.tb.data.model.send.LoginSend
+import hu.tb.network.login.model.response.UserResponse
 import hu.tb.domain.LoginInfo
 import hu.tb.domain.ServerStatus
 import hu.tb.domain.Token
+import hu.tb.network.login.model.send.LoginSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -13,6 +13,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlin.ranges.rangeTo
 
 class LoginRepository(
     private val client: HttpClient

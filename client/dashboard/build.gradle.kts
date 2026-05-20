@@ -8,6 +8,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.network)
     implementation(projects.designSystem)
 
     implementation(libs.bundles.koin)

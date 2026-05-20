@@ -2,9 +2,9 @@ package hu.tb.presentation.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import hu.tb.data.LoginRepository
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
+import hu.tb.network.login.LoginRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

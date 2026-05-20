@@ -1,4 +1,4 @@
-package hu.tb.data.model.send
+package hu.tb.network.login.model.send
 
 import kotlinx.serialization.Serializable
 

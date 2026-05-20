@@ -1,6 +1,7 @@
-package hu.tb.data.di
+package hu.tb.network.di
 
-import hu.tb.data.LoginRepository
+import hu.tb.network.dashboard.DashboardRepository
+import hu.tb.network.login.LoginRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -10,7 +11,7 @@ import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
-val authDataModule = module {
+val networkModule = module {
     single<HttpClient> {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
@@ -22,4 +23,5 @@ val authDataModule = module {
         }
     }
     singleOf(::LoginRepository)
+    singleOf(::DashboardRepository)
 }
