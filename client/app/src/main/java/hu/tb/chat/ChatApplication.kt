@@ -2,8 +2,8 @@ package hu.tb.chat
 
 import android.app.Application
 import hu.tb.dashboard.di.dashboardModule
-import hu.tb.data.di.authDataModule
 import hu.tb.datastore.di.datastoreModule
+import hu.tb.network.di.networkModule
 import hu.tb.presentation.di.authPresentationModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -19,7 +19,7 @@ class ChatApplication : Application() {
             androidLogger()
             androidContext(this@ChatApplication)
             modules(
-                authDataModule,
+                networkModule,
                 authPresentationModule,
                 datastoreModule,
                 dashboardModule,

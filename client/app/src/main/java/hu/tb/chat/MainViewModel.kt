@@ -5,9 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import hu.tb.data.LoginRepository
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
+import hu.tb.network.login.LoginRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime

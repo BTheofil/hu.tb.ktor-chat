@@ -4,8 +4,9 @@ plugins {
 }
 
 android {
-    namespace = "hu.tb.auth.data"
+    namespace = "hu.tb.network"
 }
+
 dependencies {
     implementation(projects.auth.domain)
 

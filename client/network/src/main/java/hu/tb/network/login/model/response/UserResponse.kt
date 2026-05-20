@@ -1,4 +1,4 @@
-package hu.tb.data.model.response
+package hu.tb.network.login.model.response
 
 import kotlinx.serialization.Serializable
 
