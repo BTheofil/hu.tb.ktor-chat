@@ -46,7 +46,7 @@ fun Route.userApi() {
         )
     }
 
-    get("/searchUserById") {
+    post("/searchUserById") {
         val searchUser = call.receive<UserSearchReceive.ById>()
 
         val user = chatRepository.getUserById(userId = searchUser.searchUserId)
@@ -55,7 +55,7 @@ fun Route.userApi() {
         } ?: call.respondText(text = "No user found with ${searchUser.searchUserId}", status = HttpStatusCode.NotFound)
     }
 
-    get("/searchUserByNameAndPw") {
+    post("/searchUserByNameAndPw") {
         val searchUser = call.receive<UserSearchReceive.ByTarget>()
 
         val user = chatRepository.getUserByNameAndPw(searchUser.name, searchUser.password)
@@ -66,7 +66,7 @@ fun Route.userApi() {
         }
     }
 
-    get("/searchUserByName") {
+    post("/searchUserByName") {
         val searchUser = call.receive<UserSearchReceive.ByName>()
 
         val names = chatRepository.getUserByName(searchUser.name)

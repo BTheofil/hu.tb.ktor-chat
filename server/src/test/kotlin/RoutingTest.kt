@@ -53,7 +53,7 @@ class RoutingTest {
             setBody(UserCreateReceive("Michel-Tester", password = "ice-cream"))
         }
 
-        val searchedJohn = client.get("/searchUserByNameAndPw") {
+        val searchedJohn = client.post("/searchUserByNameAndPw") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByTarget(name = "John-Tester", password = "abc-123"))
         }
@@ -72,7 +72,7 @@ class RoutingTest {
             johnDelete.bodyAsText()
         )
 
-        val searchedMichel = client.get("/searchUserByNameAndPw") {
+        val searchedMichel = client.post("/searchUserByNameAndPw") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByTarget("Michel-Tester", password = "ice-cream"))
         }
@@ -101,11 +101,11 @@ class RoutingTest {
             setBody(UserSearchReceive.ByTarget(name = "Lidl", password = "paper01"))
         }
 
-        val bobResponse = client.get("/searchUserByName") {
+        val bobResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Bob-member"))
         }
-        val lidlResponse = client.get("/searchUserByName") {
+        val lidlResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Lidl"))
         }
@@ -118,11 +118,11 @@ class RoutingTest {
             setBody(GroupCreateReceive(currentUserId = bobUser.id, otherUserId = lidlUser.id))
         }
 
-        val bobWithGroupResponse = client.get("/searchUserByName") {
+        val bobWithGroupResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Bob-member"))
         }
-        val lidlUpdatedResponse = client.get("/searchUserByName") {
+        val lidlUpdatedResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Lidl"))
         }
@@ -142,7 +142,7 @@ class RoutingTest {
             )
         }
 
-        val bobLeftGroupResponse = client.get("/searchUserByName") {
+        val bobLeftGroupResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Bob-member"))
         }
@@ -151,7 +151,7 @@ class RoutingTest {
             emptyList()
         )
 
-        val lidlStillInGroupResponse = client.get("/searchUserByName") {
+        val lidlStillInGroupResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Lidl"))
         }
@@ -171,7 +171,7 @@ class RoutingTest {
             )
         }
 
-        val lidlLeftGroupResponse = client.get("/searchUserByName") {
+        val lidlLeftGroupResponse = client.post("/searchUserByName") {
             contentType(ContentType.Application.Json)
             setBody(UserSearchReceive.ByName(name = "Lidl"))
         }
@@ -189,6 +189,16 @@ class RoutingTest {
             contentType(ContentType.Application.Json)
             setBody(UserDeleteReceive(userId = lidlLeftGroupResponse.body<List<User>>().first().id))
         }
+    }
+
+    @Test
+    fun `test group decode`() = testApplication {
+        setupEnvironment()
+        client = createClient {
+            install(ContentNegotiation) { json() }
+        }
+
+
     }
 
     @Test
@@ -281,6 +291,24 @@ class RoutingTest {
         client.delete("/deleteMessage") {
             contentType(ContentType.Application.Json)
             setBody(MessageDeleteReceive(messageId = shorterMessageHistory.body<List<Message>>().first().id!!))
+        }
+        client.delete("/leaveGroup") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                GroupLeaveReceive(
+                    leaveUserId = aliceUser.userId,
+                    targetGroupId = targetGroupId
+                )
+            )
+        }
+        client.delete("/leaveGroup") {
+            contentType(ContentType.Application.Json)
+            setBody(
+                GroupLeaveReceive(
+                    leaveUserId = evelinUser.userId,
+                    targetGroupId = targetGroupId
+                )
+            )
         }
         client.delete("/deleteUser") {
             contentType(ContentType.Application.Json)

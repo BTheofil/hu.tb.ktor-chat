@@ -1,6 +1,7 @@
 package hu.tb.datasource.data.repository
 
 import hu.tb.datasource.data.model.*
+import hu.tb.domain.send.DecodeGroup
 import hu.tb.domain.send.Group
 import hu.tb.domain.send.Message
 import hu.tb.domain.send.User
@@ -66,9 +67,22 @@ class ChatRepository {
         } else null
     }
 
-    /*fun getGroupById(groupId: Long): Group? = transactionLogger {
-        GroupEntity.findById(groupId)
-    }?.toDomain()*/
+    fun decodeGroupIds(groupIds: List<Long>, userId: Long): List<DecodeGroup> = transactionLogger {
+        val decodedGroups = mutableListOf<DecodeGroup>()
+        groupIds.forEach { id ->
+            val group = GroupEntity.findById(id)
+            val otherUsers = group?.users?.filter { it.id.value != userId }
+            if (otherUsers != null) {
+                val decodeGroup = if (otherUsers.size > 1) {
+                    DecodeGroup.Complex(groupId = group.id.value, memberNames = otherUsers.map { it.name })
+                } else {
+                    DecodeGroup.Simple(groupId = group.id.value, otherUserName = otherUsers.first().name)
+                }
+                decodedGroups.add(decodeGroup)
+            }
+        }
+        decodedGroups.toList()
+    }
 
     fun createMessage(message: Message): MessageId? = transactionLogger {
         val senderEntity = UserEntity.findById(message.senderId)
