@@ -17,6 +17,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
@@ -312,32 +313,40 @@ class RoutingTest {
         val targetGroupId = groupData.body<Group>().id
 
         runTest {
-            val alice = launch {
-                client.webSocket(
-                    urlString = "/groupConnect",
-                    request = {
-                        header(HttpHeaders.Authorization, "Bearer ${aliceUser.token}")
-                        parameter("targetGroupId", targetGroupId)
-                    }) {
-                    send(Frame.Text("Hello"))
-                    receiveDeserialized<Message>()
-                    assertEquals(
-                        "Hi Alice, it's Evelin here",
-                        receiveDeserialized<Message>().content
-                    )
-                    send(Frame.Close())
-                }
-            }
+            val evelinReady = CompletableDeferred<Unit>()
             val evelin = launch {
                 client.webSocket(
                     urlString = "/groupConnect",
                     request = {
                         header(HttpHeaders.Authorization, "Bearer ${evelinUser.token}")
                         parameter("targetGroupId", targetGroupId)
-                    }) {
+                    }
+                ) {
+                    evelinReady.complete(Unit)
                     assertEquals("Hello", receiveDeserialized<Message>().content)
                     send(Frame.Text("Hi Alice, it's Evelin here"))
-                    send(Frame.Close())
+                    receiveDeserialized<Message>()
+                    close()
+                }
+            }
+
+            val alice = launch {
+                evelinReady.await()
+
+                client.webSocket(
+                    urlString = "/groupConnect",
+                    request = {
+                        header(HttpHeaders.Authorization, "Bearer ${aliceUser.token}")
+                        parameter("targetGroupId", targetGroupId)
+                    }
+                ) {
+                    send(Frame.Text("Hello"))
+                    receiveDeserialized<Message>()
+                    assertEquals(
+                        "Hi Alice, it's Evelin here",
+                        receiveDeserialized<Message>().content
+                    )
+                   close()
                 }
             }
 
