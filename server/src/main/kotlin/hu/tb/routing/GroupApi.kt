@@ -2,6 +2,7 @@ package hu.tb.routing
 
 import hu.tb.datasource.data.repository.ChatRepository
 import hu.tb.domain.receive.GroupCreateReceive
+import hu.tb.domain.receive.GroupDecodeReceive
 import hu.tb.domain.receive.GroupLeaveReceive
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.*
@@ -23,8 +24,17 @@ fun Route.groupApi() {
         )
         newGroup?.let {
             call.respond(message = it, status = HttpStatusCode.Created)
-        } ?:
-        call.respondText(text = "Can not create group :c", status = HttpStatusCode.NoContent)
+        } ?: call.respondText(text = "Can not create group :c", status = HttpStatusCode.NotFound)
+    }
+
+    post("/decodeGroup") {
+        val groupData = call.receive<GroupDecodeReceive>()
+        val decodedGroups = chatRepository.decodeGroupIds(groupIds = groupData.groupIds, userId = groupData.userId)
+        if (decodedGroups.isNotEmpty()) {
+            call.respond(message = decodedGroups, status = HttpStatusCode.OK)
+        } else {
+            call.respondText(text = "Can not decode group ids", status = HttpStatusCode.NotAcceptable)
+        }
     }
 
     delete("/leaveGroup") {
