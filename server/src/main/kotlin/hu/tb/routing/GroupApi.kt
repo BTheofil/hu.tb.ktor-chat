@@ -24,7 +24,7 @@ fun Route.groupApi() {
         )
         newGroup?.let {
             call.respond(message = it, status = HttpStatusCode.Created)
-        } ?: call.respondText(text = "Can not create group :c", status = HttpStatusCode.NoContent)
+        } ?: call.respondText(text = "Can not create group :c", status = HttpStatusCode.NotFound)
     }
 
     post("/decodeGroup") {

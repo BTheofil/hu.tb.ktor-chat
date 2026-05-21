@@ -70,16 +70,22 @@ class ChatRepository {
     fun decodeGroupIds(groupIds: List<Long>, userId: Long): List<DecodeGroup> = transactionLogger {
         val decodedGroups = mutableListOf<DecodeGroup>()
         groupIds.forEach { id ->
-            val group = GroupEntity.findById(id)
-            val otherUsers = group?.users?.filter { it.id.value != userId }
-            if (otherUsers != null) {
-                val decodeGroup = if (otherUsers.size > 1) {
-                    DecodeGroup.Complex(groupId = group.id.value, memberNames = otherUsers.map { it.name })
-                } else {
-                    DecodeGroup.Simple(groupId = group.id.value, otherUserName = otherUsers.first().name)
-                }
-                decodedGroups.add(decodeGroup)
+            val group = GroupEntity.findById(id) ?: return@forEach
+            val otherUsers = group.users.filter { it.id.value != userId }
+
+            if (otherUsers.isEmpty()) return@forEach
+
+            val decodeGroup = if (otherUsers.size > 1) {
+                DecodeGroup.Complex(
+                    groupId = group.id.value,
+                    memberNames = otherUsers.map { it.name })
+            } else {
+                DecodeGroup.Simple(
+                    groupId = group.id.value,
+                    otherUserName = otherUsers.first().name
+                )
             }
+            decodedGroups.add(decodeGroup)
         }
         decodedGroups.toList()
     }
