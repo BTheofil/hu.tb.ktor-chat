@@ -13,7 +13,7 @@ android {
 
 dependencies {
     implementation(projects.auth.presentation)
-    implementation(projects.dashboard)
+    implementation(projects.dashboard.presentation)
 
     implementation(libs.bundles.nav3)
 }

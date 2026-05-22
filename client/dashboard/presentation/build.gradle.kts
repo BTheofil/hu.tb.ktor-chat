@@ -4,12 +4,13 @@ plugins {
 }
 
 android {
-    namespace = "hu.tb.dashboard"
+    namespace = "hu.tb.dashboard.presentation"
 }
 
 dependencies {
     implementation(projects.network)
     implementation(projects.designSystem)
+    implementation(projects.datastore)
 
     implementation(libs.bundles.koin)
 }
