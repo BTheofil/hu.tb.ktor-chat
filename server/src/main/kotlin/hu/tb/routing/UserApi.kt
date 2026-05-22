@@ -51,7 +51,7 @@ fun Route.userApi() {
 
         val user = chatRepository.getUserById(userId = searchUser.searchUserId)
         user?.let {
-            call.respond(message = user, status = HttpStatusCode.Found)
+            call.respond(message = user, status = HttpStatusCode.OK)
         } ?: call.respondText(text = "No user found with ${searchUser.searchUserId}", status = HttpStatusCode.NotFound)
     }
 
