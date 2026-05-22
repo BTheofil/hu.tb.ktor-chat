@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.network)
     implementation(projects.designSystem)
     implementation(projects.datastore)
+    implementation(projects.dashboard.domain)
 
     implementation(libs.bundles.koin)
 }

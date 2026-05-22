@@ -49,24 +49,32 @@ class LoginViewModel(
         if (state.value.isUsernameHasError || state.value.isPasswordHasError) return
 
         viewModelScope.launch {
+            _state.update { it.copy(isLoginLoading = true) }
+
             val loginInfo = LoginInfo(
                 username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
-            val token = loginRepository.handleLogin(loginInfo)
+            val userInfo = loginRepository.handleLogin(loginInfo)
 
-            if (token == null) {
+            if (userInfo == null) {
                 _state.update { it.copy(isLoginHasError = true) }
                 return@launch
             }
 
             userDatastoreRepository.updateUserData(
+                id = userInfo.userId,
                 name = state.value.username.text.toString(),
                 password = state.value.password.text.toString(),
-                token = token.value,
+                token = userInfo.token,
                 tokenRefreshDate = LocalDateTime.now().toString()
             )
-            _state.update { it.copy(isLoginHasError = false) }
+            _state.update {
+                it.copy(
+                    isLoginLoading = false,
+                    isLoginHasError = false
+                )
+            }
             _event.send(LoginEvent.LoginSuccess)
         }
     }

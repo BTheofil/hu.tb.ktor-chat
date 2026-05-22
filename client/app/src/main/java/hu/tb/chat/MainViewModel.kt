@@ -28,13 +28,13 @@ class MainViewModel(
                 return@launch
             }
 
-            val newToken = loginRepository.autoLogin(LoginInfo(userData.name, userData.password))
-            if (newToken == null) {
+            val userInfo = loginRepository.autoLogin(LoginInfo(userData.name, userData.password))
+            if (userInfo == null) {
                 state = MainState.NoLogin
                 return@launch
             } else {
                 userDatastoreRepository.updateUserData(
-                    token = newToken.value,
+                    token = userInfo.token,
                     tokenRefreshDate = LocalDateTime.now().toString()
                 )
                 state = MainState.HasLoggedUser

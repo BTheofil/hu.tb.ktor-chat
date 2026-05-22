@@ -3,7 +3,7 @@ package hu.tb.network.login
 import hu.tb.network.login.model.response.UserResponse
 import hu.tb.domain.LoginInfo
 import hu.tb.domain.ServerStatus
-import hu.tb.domain.Token
+import hu.tb.domain.UserInfo
 import hu.tb.network.login.model.send.LoginSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -33,7 +33,7 @@ class LoginRepository(
      * @param hu.tb.domain.LoginInfo username: String, password: String
      * @return hu.tb.domain.Token - value:String
      **/
-    suspend fun handleLogin(loginInfo: LoginInfo): Token? =
+    suspend fun handleLogin(loginInfo: LoginInfo): UserInfo? =
         try {
             val existUserResponse = client.post("/token") {
                 contentType(ContentType.Application.Json)
@@ -46,23 +46,24 @@ class LoginRepository(
                 }
 
                 val userInfo = newUserResponse.body<UserResponse>()
-                return Token(userInfo.token)
+                return UserInfo(userId = userInfo.userId, userInfo.token)
             } else {
+                // user already in db just get a new token
                 val newToken = existUserResponse.body<String>()
-                return Token(newToken)
+                return UserInfo(token = newToken)
             }
         } catch (e: Exception) {
             e.printStackTrace()
             return null
         }
 
-    suspend fun autoLogin(loginInfo: LoginInfo): Token? {
+    suspend fun autoLogin(loginInfo: LoginInfo): UserInfo? {
         try {
             val tokenResponse = client.post("/token") {
                 contentType(ContentType.Application.Json)
                 setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
             }
-            return Token(value = tokenResponse.body<String>())
+            return UserInfo(token = tokenResponse.body<String>())
         } catch (e: Exception) {
             e.printStackTrace()
             return null

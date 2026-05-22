@@ -20,8 +20,8 @@ class DashboardViewModel(
     init {
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
-
-            val userDetails = dashboardRepository.getCurrentUser(userData.name, userData.password)
+            val groups = dashboardRepository.getUserGroups(userId = userData.id)
+            println(groups)
         }
     }
 }
