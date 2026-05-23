@@ -7,5 +7,5 @@ data class UserDetail(
     val id: Long,
     val name: String,
     val password: String,
-    val groupIds: List<Long>
+    val groupIds: List<Long>?
 )

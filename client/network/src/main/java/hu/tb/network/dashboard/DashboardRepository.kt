@@ -23,24 +23,27 @@ class DashboardRepository(
             }
             val userDetails = userDetailsResponse.body<UserDetail>()
 
-            val decodeResponse = client.post("/decodeGroup") {
-                contentType(ContentType.Application.Json)
-                setBody(DecodeGroupSend(userId = userId, groupIds = userDetails.groupIds))
-            }
-            val allGroups = decodeResponse.body<DecodedGroups>().groups
-            return allGroups.map {
-                if (it.otherUserName != null) {
-                    GroupTypes.Simple(
-                        groupId = it.groupId,
-                        otherUsername = it.otherUserName
-                    )
-                } else {
-                    GroupTypes.Complex(
-                        groupId = it.groupId,
-                        participantNames = it.memberNames ?: emptyList()
-                    )
+            userDetails.groupIds?.let { groupIds ->
+                val decodeResponse = client.post("/decodeGroup") {
+                    contentType(ContentType.Application.Json)
+                    setBody(DecodeGroupSend(userId = userId, groupIds = groupIds))
+                }
+                val allGroups = decodeResponse.body<DecodedGroups>().groups
+                return allGroups.map {
+                    if (it.otherUserName != null) {
+                        GroupTypes.Simple(
+                            groupId = it.groupId,
+                            otherUsername = it.otherUserName
+                        )
+                    } else {
+                        GroupTypes.Complex(
+                            groupId = it.groupId,
+                            participantNames = it.memberNames ?: emptyList()
+                        )
+                    }
                 }
             }
+            return null
         } catch (e: Exception) {
             e.printStackTrace()
             return null
