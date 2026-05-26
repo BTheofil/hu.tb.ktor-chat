@@ -9,4 +9,5 @@ object Icon {
     val database_off = R.drawable.database_off
     val visibility = R.drawable.visibility
     val visibility_off = R.drawable.visibility_off
+    val settings = R.drawable.settings
 }

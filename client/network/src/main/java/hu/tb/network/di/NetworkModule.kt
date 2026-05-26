@@ -15,7 +15,10 @@ val networkModule = module {
     single<HttpClient> {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
-                json(Json { prettyPrint = true })
+                json(Json {
+                    explicitNulls = false
+                    prettyPrint = true
+                })
             }
             defaultRequest {
                 url("http://[2a01:4f9:c014:f7e9::1]:8080")
