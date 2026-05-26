@@ -3,14 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "hu.tb.auth.presentation"
+    namespace = "hu.tb.profile.presentation"
 }
 
 dependencies {
-    implementation(projects.network)
     implementation(projects.designSystem)
-    implementation(projects.auth.domain)
-    implementation(projects.datastore)
 
     implementation(libs.bundles.koin)
 }

@@ -12,6 +12,7 @@ class AndroidLibraryComposeConventionPlugin : Plugin<Project> {
         with(target) {
             apply(plugin = "chat.android.library")
             apply(plugin = "org.jetbrains.kotlin.plugin.compose")
+            apply(plugin = "com.github.skydoves.compose.stability.analyzer")
 
             val extension = extensions.getByType<LibraryExtension>()
             configureAndroidCompose(extension)
