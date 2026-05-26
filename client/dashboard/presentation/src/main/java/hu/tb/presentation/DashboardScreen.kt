@@ -1,5 +1,8 @@
 package hu.tb.presentation
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,33 +16,54 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
+import hu.tb.domain.GroupTypes
 import hu.tb.ui.theme.ChatTheme
+import hu.tb.ui.theme.Icon
 import hu.tb.ui.theme.screen_horizontal_padding
 import hu.tb.ui.theme.screen_vertical_padding
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DashboardScreen(
-    viewModel: DashboardViewModel = koinViewModel()
+    viewModel: DashboardViewModel = koinViewModel(),
+    navigationRequest: (NavigationRequest) -> Unit
 ) {
     DashboardScreen(
-        state = viewModel.state.collectAsStateWithLifecycle().value
+        state = viewModel.state.collectAsStateWithLifecycle().value,
+        action = {
+            when (it) {
+                is DashboardAction.GroupClick -> navigationRequest(
+                    DashboardAction.GroupClick(
+                        groupId = it.groupId
+                    )
+                )
+
+                DashboardAction.ProfileClick -> navigationRequest(DashboardAction.ProfileClick)
+                DashboardAction.FindFriendClick -> navigationRequest(DashboardAction.FindFriendClick)
+            }
+        }
     )
 }
 
 @TraceRecomposition
 @Composable
 private fun DashboardScreen(
-    state: DashboardState
+    state: DashboardState,
+    action: (DashboardAction) -> Unit
 ) {
     Scaffold(
         modifier = Modifier
@@ -51,18 +75,36 @@ private fun DashboardScreen(
                 .padding(innerPadding)
                 .padding(horizontal = screen_horizontal_padding, vertical = screen_vertical_padding)
         ) {
-            Text(
-                text = "Welcome User",
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Row {
+                Text(
+                    modifier = Modifier
+                        .weight(1f),
+                    text = "Welcome User",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                IconButton(
+                    onClick = { action(DashboardAction.ProfileClick) },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .3f)
+                    ),
+                    content = {
+                        Icon(
+                            painter = painterResource(Icon.settings),
+                            contentDescription = "profile setting icon",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                )
+            }
             Spacer(Modifier.height(8.dp))
             ElevatedCard(
                 modifier = Modifier
                     .fillMaxWidth(),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
                 ),
+                onClick = { action(DashboardAction.FindFriendClick) },
                 content = {
                     Row(
                         modifier = Modifier
@@ -86,17 +128,45 @@ private fun DashboardScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             ) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(
-                        items = state.friends
-                    ) { friend ->
+                if (state.groups.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            friend,
-                            style = MaterialTheme.typography.bodyLarge,
+                            text = "No available group to show",
+                            style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.primary
                         )
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(
+                            items = state.groups,
+                            key = { it.groupId }
+                        ) { group ->
+                            when (group) {
+                                is GroupTypes.Complex -> {}
+                                is GroupTypes.Simple -> {
+                                    Text(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable(
+                                                onClick = { action(DashboardAction.GroupClick(group.groupId)) }
+                                            ),
+                                        text = "- " + group.otherUsername,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -107,12 +177,13 @@ private fun DashboardScreen(
 @Preview
 @Composable
 private fun DashboardScreenPreview() {
-    val test = List(50, init = { "" })
+    val test = List(50, init = { GroupTypes.Simple(groupId = it.toLong(), otherUsername = "a") })
     ChatTheme {
         DashboardScreen(
             state = DashboardState(
-                friends = test
-            )
+                groups = test
+            ),
+            action = {}
         )
     }
 }

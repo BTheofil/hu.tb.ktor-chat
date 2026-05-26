@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
+import hu.tb.presentation.DashboardAction
 import hu.tb.presentation.DashboardScreen
 import hu.tb.presentation.login.LoginScreen
 
@@ -13,6 +14,7 @@ import hu.tb.presentation.login.LoginScreen
 sealed interface Destination {
     data object Login : Destination
     data object Dashboard : Destination
+    data object Profile : Destination
 }
 
 @Composable
@@ -33,7 +35,18 @@ fun Navigator(
                 )
             }
             entry<Destination.Dashboard> {
-                DashboardScreen()
+                DashboardScreen(
+                    navigationRequest = {
+                        when (it) {
+                            is DashboardAction.GroupClick -> TODO()
+                            DashboardAction.ProfileClick -> backStack.add(Destination.Profile)
+                            DashboardAction.FindFriendClick -> TODO()
+                        }
+                    }
+                )
+            }
+            entry<Destination.Profile> {
+
             }
         }
     )

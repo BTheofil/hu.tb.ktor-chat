@@ -1,13 +1,14 @@
 package hu.tb.domain
 
 sealed interface GroupTypes {
+    val groupId: Long
     data class Simple(
-        val groupId: Long,
+        override val groupId: Long,
         val otherUsername: String
     ) : GroupTypes
 
     data class Complex(
-        val groupId: Long,
+        override val groupId: Long,
         val participantNames: List<String>
     ): GroupTypes
 }

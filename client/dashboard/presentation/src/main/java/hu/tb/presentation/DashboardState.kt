@@ -1,8 +1,9 @@
 package hu.tb.presentation
 
 import androidx.compose.runtime.Stable
+import hu.tb.domain.GroupTypes
 
 @Stable
 data class DashboardState(
-    val friends: List<String> = emptyList()
+    val groups: List<GroupTypes> = emptyList()
 )

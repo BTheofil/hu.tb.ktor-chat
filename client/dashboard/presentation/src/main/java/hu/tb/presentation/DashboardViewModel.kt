@@ -7,6 +7,7 @@ import hu.tb.network.dashboard.DashboardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
@@ -21,7 +22,9 @@ class DashboardViewModel(
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
             val groups = dashboardRepository.getUserGroups(userId = userData.id)
-            println(groups)
+            _state.update { it.copy(
+                groups = groups ?: emptyList()
+            ) }
         }
     }
 }
