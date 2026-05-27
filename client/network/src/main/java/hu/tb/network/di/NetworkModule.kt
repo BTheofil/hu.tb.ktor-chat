@@ -2,6 +2,7 @@ package hu.tb.network.di
 
 import hu.tb.network.dashboard.DashboardRepository
 import hu.tb.network.login.LoginRepository
+import hu.tb.network.profile.ProfileRepository
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -27,4 +28,5 @@ val networkModule = module {
     }
     singleOf(::LoginRepository)
     singleOf(::DashboardRepository)
+    singleOf(::ProfileRepository)
 }

@@ -9,6 +9,7 @@ import androidx.navigation3.ui.NavDisplay
 import hu.tb.presentation.DashboardAction
 import hu.tb.presentation.DashboardScreen
 import hu.tb.presentation.login.LoginScreen
+import hu.tb.profile.presentation.ProfileScreen
 
 @Stable
 sealed interface Destination {
@@ -46,7 +47,7 @@ fun Navigator(
                 )
             }
             entry<Destination.Profile> {
-
+                ProfileScreen()
             }
         }
     )

@@ -5,6 +5,7 @@ import hu.tb.datastore.di.datastoreModule
 import hu.tb.network.di.networkModule
 import hu.tb.presentation.di.authPresentationModule
 import hu.tb.presentation.di.dashboardModule
+import hu.tb.profile.presentation.di.profileModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -23,6 +24,7 @@ class ChatApplication : Application() {
                 authPresentationModule,
                 datastoreModule,
                 dashboardModule,
+                profileModule,
                 module { viewModelOf(::MainViewModel) }
             )
         }
