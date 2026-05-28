@@ -1,5 +1,6 @@
 package hu.tb.presentation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,8 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -154,16 +158,28 @@ private fun DashboardScreen(
                             when (group) {
                                 is GroupTypes.Complex -> {}
                                 is GroupTypes.Simple -> {
-                                    Text(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .clickable(
-                                                onClick = { action(DashboardAction.GroupClick(group.groupId)) }
-                                            ),
-                                        text = "- " + group.otherUsername,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
+                                    Row {
+                                        ProfileBubble(
+                                            firstLetter = group.otherUsername.first().toString()
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clickable(
+                                                    onClick = {
+                                                        action(
+                                                            DashboardAction.GroupClick(
+                                                                group.groupId
+                                                            )
+                                                        )
+                                                    }
+                                                ),
+                                            text = group.otherUsername,
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -174,10 +190,32 @@ private fun DashboardScreen(
     }
 }
 
+@Composable
+private fun ProfileBubble(
+    modifier: Modifier = Modifier,
+    firstLetter: String
+) {
+    Box(
+        modifier = modifier
+            .size(28.dp)
+            .background(
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = firstLetter,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onTertiaryContainer
+        )
+    }
+}
+
 @Preview
 @Composable
 private fun DashboardScreenPreview() {
-    val test = List(50, init = { GroupTypes.Simple(groupId = it.toLong(), otherUsername = "a") })
+    val test = List(50, init = { GroupTypes.Simple(groupId = it.toLong(), otherUsername = "abc") })
     ChatTheme {
         DashboardScreen(
             state = DashboardState(
