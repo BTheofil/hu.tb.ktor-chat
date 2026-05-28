@@ -11,11 +11,15 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -27,18 +31,24 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun ProfileScreen(
-    viewModel: ProfileViewModel = koinViewModel()
+    viewModel: ProfileViewModel = koinViewModel(),
+    navigationRequest: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
-            when(event) {
-                ProfileEvent.UserDeleted -> TODO()
-                ProfileEvent.UserDeletionFailed -> TODO()
+            when (event) {
+                ProfileEvent.UserDeleted -> navigationRequest()
+                ProfileEvent.UserDeletionFailed -> {
+                    snackbarHostState.showSnackbar(message = "Currently can not delete profile.")
+                }
             }
         }
     }
 
     ProfileScreen(
+        snackbarHostState = snackbarHostState,
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = viewModel::action
     )
@@ -47,10 +57,15 @@ fun ProfileScreen(
 @TraceRecomposition
 @Composable
 private fun ProfileScreen(
+    snackbarHostState: SnackbarHostState,
     state: ProfileState,
     action: (ProfileAction) -> Unit
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -64,7 +79,8 @@ private fun ProfileScreen(
             Text(
                 text = state.username,
                 style = MaterialTheme.typography.displayMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.weight(1f))
             Card(
@@ -100,6 +116,7 @@ private fun ProfileScreen(
 private fun ProfileScreenPreview() {
     ChatTheme {
         ProfileScreen(
+            snackbarHostState = SnackbarHostState(),
             state = ProfileState(username = "Example username"),
             action = {}
         )

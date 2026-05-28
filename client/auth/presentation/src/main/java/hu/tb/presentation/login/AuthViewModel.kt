@@ -16,26 +16,26 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlin.time.Duration.Companion.milliseconds
 
-class LoginViewModel(
+class AuthViewModel(
     private val loginRepository: LoginRepository,
     private val userDatastoreRepository: UserDatastoreRepository
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(LoginState())
+    private val _state = MutableStateFlow(AuthState())
     val state = _state.asStateFlow()
 
-    private val _event = Channel<LoginEvent>()
+    private val _event = Channel<AuthEvent>()
     val event = _event.receiveAsFlow()
 
     init {
         serverCheck()
     }
 
-    fun action(action: LoginAction) {
+    fun action(action: AuthAction) {
         when (action) {
-            LoginAction.Enter -> profileLogin()
-            LoginAction.ServerCheck -> serverCheck()
-            LoginAction.TogglePasswordVisibility -> togglePasswordVisibility()
+            AuthAction.Enter -> profileLogin()
+            AuthAction.ServerCheck -> serverCheck()
+            AuthAction.TogglePasswordVisibility -> togglePasswordVisibility()
         }
     }
 
@@ -75,7 +75,7 @@ class LoginViewModel(
                     isLoginHasError = false
                 )
             }
-            _event.send(LoginEvent.LoginSuccess)
+            _event.send(AuthEvent.AuthSuccess)
         }
     }
 

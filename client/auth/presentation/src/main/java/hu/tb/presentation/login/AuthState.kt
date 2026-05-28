@@ -3,7 +3,7 @@ package hu.tb.presentation.login
 import androidx.compose.foundation.text.input.TextFieldState
 import hu.tb.domain.ServerStatus
 
-data class LoginState(
+data class AuthState(
     val username: TextFieldState = TextFieldState(),
     val isUsernameHasError: Boolean = false,
     val password: TextFieldState = TextFieldState(),

@@ -41,10 +41,12 @@ class ProfileViewModel(
         viewModelScope.launch {
             val userId = userDatastoreRepository.userdataFlow().first().id
             val result = profileRepository.deleteProfile(userId)
-            if (result == ProfileDeleteStatus.SUCCESS)
+            if (result == ProfileDeleteStatus.SUCCESS) {
+                userDatastoreRepository.clearUserData()
                 _event.send(ProfileEvent.UserDeleted)
-            else
+            } else {
                 _event.send(ProfileEvent.UserDeletionFailed)
+            }
         }
     }
 }

@@ -51,19 +51,19 @@ import java.time.format.DateTimeFormatter
 
 @Suppress("ParamsComparedByRef")
 @Composable
-fun LoginScreen(
-    viewModel: LoginViewModel = koinViewModel(),
+fun AuthScreen(
+    viewModel: AuthViewModel = koinViewModel(),
     navigationRequest: () -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
-            if (event is LoginEvent.LoginSuccess) {
+            if (event is AuthEvent.AuthSuccess) {
                 navigationRequest()
             }
         }
     }
 
-    LoginScreen(
+    AuthScreen(
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = viewModel::action
     )
@@ -71,9 +71,9 @@ fun LoginScreen(
 
 @TraceRecomposition
 @Composable
-private fun LoginScreen(
-    state: LoginState,
-    action: (LoginAction) -> Unit
+private fun AuthScreen(
+    state: AuthState,
+    action: (AuthAction) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -103,8 +103,8 @@ private fun LoginScreen(
 @Composable
 fun Form(
     modifier: Modifier = Modifier,
-    state: LoginState,
-    action: (LoginAction) -> Unit
+    state: AuthState,
+    action: (AuthAction) -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
@@ -167,7 +167,7 @@ fun Form(
             },
             trailingIcon = {
                 IconButton(
-                    onClick = { action(LoginAction.TogglePasswordVisibility) },
+                    onClick = { action(AuthAction.TogglePasswordVisibility) },
                     content = {
                         Icon(
                             painter = painterResource(if (state.isPasswordVisible) Icon.visibility else Icon.visibility_off),
@@ -199,7 +199,7 @@ fun Form(
         Button(
             modifier = Modifier
                 .fillMaxWidth(),
-            onClick = { action(LoginAction.Enter) },
+            onClick = { action(AuthAction.Enter) },
             content = {
                 if (state.isLoginLoading) {
                     CircularProgressIndicator(
@@ -226,8 +226,8 @@ fun Form(
 @Composable
 fun Status(
     modifier: Modifier = Modifier,
-    state: LoginState,
-    action: (LoginAction) -> Unit
+    state: AuthState,
+    action: (AuthAction) -> Unit
 ) {
     val ago = remember(state.serverCheckedTime) {
         LocalTime.parse(state.serverCheckedTime)
@@ -244,7 +244,7 @@ fun Status(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(
-                    onClick = { action(LoginAction.ServerCheck) },
+                    onClick = { action(AuthAction.ServerCheck) },
                     indication = null,
                     interactionSource = null
                 ),
@@ -281,8 +281,8 @@ fun Status(
 @Composable
 private fun LoginScreenPreview() {
     ChatTheme {
-        LoginScreen(
-            state = LoginState(
+        AuthScreen(
+            state = AuthState(
                 serverStatus = ServerStatus.ALIVE
             ),
             action = {}

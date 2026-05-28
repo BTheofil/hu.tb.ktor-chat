@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     Navigator(
                         startDestination = when (state) {
                             MainState.HasLoggedUser -> Destination.Dashboard
-                            MainState.NoLogin -> Destination.Login
+                            MainState.NoLogin -> Destination.Auth
                         }
                     )
                 }

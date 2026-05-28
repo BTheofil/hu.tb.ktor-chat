@@ -8,12 +8,12 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import hu.tb.presentation.DashboardAction
 import hu.tb.presentation.DashboardScreen
-import hu.tb.presentation.login.LoginScreen
+import hu.tb.presentation.login.AuthScreen
 import hu.tb.profile.presentation.ProfileScreen
 
 @Stable
 sealed interface Destination {
-    data object Login : Destination
+    data object Auth : Destination
     data object Dashboard : Destination
     data object Profile : Destination
 }
@@ -27,11 +27,11 @@ fun Navigator(
     NavDisplay(
         backStack = backStack,
         entryProvider = entryProvider {
-            entry<Destination.Login> {
-                LoginScreen(
+            entry<Destination.Auth> {
+                AuthScreen(
                     navigationRequest = {
                         backStack.add(Destination.Dashboard)
-                        backStack.remove(Destination.Login)
+                        backStack.remove(Destination.Auth)
                     }
                 )
             }
@@ -47,7 +47,12 @@ fun Navigator(
                 )
             }
             entry<Destination.Profile> {
-                ProfileScreen()
+                ProfileScreen(
+                    navigationRequest = {
+                        backStack.clear()
+                        backStack.add(Destination.Auth)
+                    }
+                )
             }
         }
     )
