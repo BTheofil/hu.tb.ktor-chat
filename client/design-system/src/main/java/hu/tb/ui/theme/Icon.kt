@@ -10,4 +10,6 @@ object Icon {
     val visibility = R.drawable.visibility
     val visibility_off = R.drawable.visibility_off
     val settings = R.drawable.settings
+    val person_search = R.drawable.person_search
+    val send = R.drawable.send
 }

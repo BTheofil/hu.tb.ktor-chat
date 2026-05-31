@@ -1,4 +1,4 @@
-package hu.tb.presentation
+package hu.tb.presentation.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -83,7 +83,7 @@ private fun DashboardScreen(
                 Text(
                     modifier = Modifier
                         .weight(1f),
-                    text = "Welcome User",
+                    text = state.username,
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -119,6 +119,11 @@ private fun DashboardScreen(
                             text = "Find your friends",
                             style = MaterialTheme.typography.headlineSmall,
                             color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Icon(
+                            painter = painterResource(Icon.person_search),
+                            contentDescription = "person search icon",
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -158,23 +163,24 @@ private fun DashboardScreen(
                             when (group) {
                                 is GroupTypes.Complex -> {}
                                 is GroupTypes.Simple -> {
-                                    Row {
+                                    Row(
+                                        modifier = Modifier
+                                            .clickable(
+                                                onClick = {
+                                                    action(
+                                                        DashboardAction.GroupClick(
+                                                            group.groupId
+                                                        )
+                                                    )
+                                                }
+                                            )
+                                    ) {
                                         ProfileBubble(
                                             firstLetter = group.otherUsername.first().toString()
                                         )
                                         Spacer(Modifier.width(8.dp))
                                         Text(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .clickable(
-                                                    onClick = {
-                                                        action(
-                                                            DashboardAction.GroupClick(
-                                                                group.groupId
-                                                            )
-                                                        )
-                                                    }
-                                                ),
+                                            modifier = Modifier.fillMaxWidth(),
                                             text = group.otherUsername,
                                             style = MaterialTheme.typography.bodyLarge,
                                             color = MaterialTheme.colorScheme.primary
@@ -219,6 +225,7 @@ private fun DashboardScreenPreview() {
     ChatTheme {
         DashboardScreen(
             state = DashboardState(
+                username = "Exmaple name",
                 groups = test
             ),
             action = {}

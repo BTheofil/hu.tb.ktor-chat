@@ -1,4 +1,4 @@
-package hu.tb.presentation
+package hu.tb.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -22,9 +22,12 @@ class DashboardViewModel(
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
             val groups = dashboardRepository.getUserGroups(userId = userData.id)
-            _state.update { it.copy(
-                groups = groups ?: emptyList()
-            ) }
+            _state.update {
+                it.copy(
+                    username = userData.name,
+                    groups = groups ?: emptyList()
+                )
+            }
         }
     }
 }

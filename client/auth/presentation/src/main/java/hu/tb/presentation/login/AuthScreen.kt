@@ -49,7 +49,6 @@ import org.koin.androidx.compose.koinViewModel
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
-@Suppress("ParamsComparedByRef")
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel = koinViewModel(),

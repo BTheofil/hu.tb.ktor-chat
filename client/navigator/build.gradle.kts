@@ -15,6 +15,7 @@ dependencies {
     implementation(projects.auth.presentation)
     implementation(projects.dashboard.presentation)
     implementation(projects.profile.presentation)
+    implementation(projects.message.presentation)
 
     implementation(libs.bundles.nav3)
 }
