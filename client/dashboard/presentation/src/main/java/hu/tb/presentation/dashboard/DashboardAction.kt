@@ -1,4 +1,4 @@
-package hu.tb.presentation
+package hu.tb.presentation.dashboard
 
 import androidx.compose.runtime.Stable
 

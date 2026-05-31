@@ -2,6 +2,7 @@ package hu.tb.chat
 
 import android.app.Application
 import hu.tb.datastore.di.datastoreModule
+import hu.tb.message.presentation.di.messageModule
 import hu.tb.network.di.networkModule
 import hu.tb.presentation.di.authPresentationModule
 import hu.tb.presentation.di.dashboardModule
@@ -25,6 +26,7 @@ class ChatApplication : Application() {
                 datastoreModule,
                 dashboardModule,
                 profileModule,
+                messageModule,
                 module { viewModelOf(::MainViewModel) }
             )
         }
