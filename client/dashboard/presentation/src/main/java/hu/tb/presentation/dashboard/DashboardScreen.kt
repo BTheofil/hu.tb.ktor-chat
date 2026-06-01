@@ -19,16 +19,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -57,21 +62,29 @@ fun DashboardScreen(
                 )
 
                 DashboardAction.ProfileClick -> navigationRequest(DashboardAction.ProfileClick)
-                DashboardAction.FindFriendClick -> navigationRequest(DashboardAction.FindFriendClick)
+                DashboardAction.Search -> viewModel.search()
             }
         }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @TraceRecomposition
 @Composable
 private fun DashboardScreen(
     state: DashboardState,
     action: (DashboardAction) -> Unit
 ) {
+    val focusManager = LocalFocusManager.current
+
     Scaffold(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable(
+                indication = null,
+                interactionSource = null,
+                onClick = { focusManager.clearFocus() }
+            )
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -102,31 +115,39 @@ private fun DashboardScreen(
                 )
             }
             Spacer(Modifier.height(8.dp))
-            ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-                onClick = { action(DashboardAction.FindFriendClick) },
-                content = {
-                    Row(
-                        modifier = Modifier
-                            .padding(8.dp)
-                    ) {
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = "Find your friends",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = MaterialTheme.colorScheme.onSurface
+            val searchBarState = rememberSearchBarState()
+            SearchBar(
+                modifier = Modifier.fillMaxWidth(),
+                state = searchBarState,
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        modifier = Modifier.padding(start = 8.dp),
+                        textFieldState = state.searchText,
+                        searchBarState = searchBarState,
+                        onSearch = { action(DashboardAction.Search) },
+                        placeholder = {
+                            Text(
+                                text = "Find your friends",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        },
+                        trailingIcon = {
+                            Icon(
+                                painter = painterResource(Icon.person_search),
+                                contentDescription = "person search icon",
+                                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        },
+                        colors = TextFieldDefaults.colors(
+                            unfocusedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            focusedContainerColor = MaterialTheme.colorScheme.secondaryContainer
                         )
-                        Icon(
-                            painter = painterResource(Icon.person_search),
-                            contentDescription = "person search icon",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
+                    )
+                },
+                colors = SearchBarDefaults.colors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                )
             )
             Spacer(Modifier.height(16.dp))
             Card(

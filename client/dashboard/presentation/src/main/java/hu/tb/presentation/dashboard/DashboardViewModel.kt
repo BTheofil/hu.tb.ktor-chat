@@ -30,4 +30,27 @@ class DashboardViewModel(
             }
         }
     }
+
+    fun search() {
+        viewModelScope.launch {
+            val users = dashboardRepository.searchFriend(state.value.searchText.text.toString())
+            if (!users.isNullOrEmpty()) {
+                _state.update {
+                    it.copy(
+
+                    )
+                }
+            }
+        }
+    }
+
+    private fun connect(otherUserId: Long) {
+        viewModelScope.launch {
+            val userId = userDatastoreRepository.userdataFlow().first().id
+            val result = dashboardRepository.makeGroup(
+                userId = userId,
+                otherUserId = otherUserId
+            )
+        }
+    }
 }
