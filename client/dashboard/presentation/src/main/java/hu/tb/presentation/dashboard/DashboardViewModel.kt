@@ -3,6 +3,7 @@ package hu.tb.presentation.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
+import hu.tb.domain.GroupResult
 import hu.tb.network.dashboard.DashboardRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +35,7 @@ class DashboardViewModel(
     fun action(action: DashboardAction) {
         when (action) {
             DashboardAction.Search -> searchForFriend()
+            is DashboardAction.MakeFriend -> makeFriend(action.otherUserId)
             else -> return
         }
     }
@@ -58,13 +60,17 @@ class DashboardViewModel(
         }
     }
 
-    private fun connect(otherUserId: Long) {
+    private fun makeFriend(otherUserId: Long) {
         viewModelScope.launch {
             val userId = userDatastoreRepository.userdataFlow().first().id
             val result = dashboardRepository.makeGroup(
                 userId = userId,
                 otherUserId = otherUserId
             )
+            if (result == GroupResult.CREATED) {
+                val groups = dashboardRepository.getUserFriends(userId = userId)
+                _state.update { it.copy(groups = groups ?: emptyList()) }
+            }
         }
     }
 }

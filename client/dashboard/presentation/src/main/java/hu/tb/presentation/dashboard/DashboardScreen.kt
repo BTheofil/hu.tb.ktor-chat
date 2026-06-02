@@ -279,6 +279,14 @@ fun SearchWidget(
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Icon(
+                                modifier = Modifier
+                                    .clickable(
+                                        onClick = {
+                                            action(DashboardAction.MakeFriend(user.id))
+                                            state.searchText.clearText()
+                                            scope.launch { searchBarState.animateToCollapsed() }
+                                        }
+                                    ),
                                 painter = painterResource(if (user.isFriend) Icon.check_circle else Icon.group_add),
                                 contentDescription = "is user already in group icon",
                                 tint = MaterialTheme.colorScheme.onSurface
