@@ -1,9 +1,9 @@
-package hu.tb.network.login.model.send
+package hu.tb.network.auth.model.send
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class LoginSend(
+data class SearchUserSend(
     val name: String,
     val password: String
 )

@@ -21,7 +21,7 @@ class DashboardViewModel(
     init {
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
-            val groups = dashboardRepository.getUserGroups(userId = userData.id)
+            val groups = dashboardRepository.getUserFriends(userId = userData.id)
             _state.update {
                 it.copy(
                     username = userData.name,
@@ -31,16 +31,30 @@ class DashboardViewModel(
         }
     }
 
-    fun search() {
+    fun action(action: DashboardAction) {
+        when (action) {
+            DashboardAction.Search -> searchForFriend()
+            else -> return
+        }
+    }
+
+    private fun searchForFriend() {
         viewModelScope.launch {
-            val users = dashboardRepository.searchFriend(state.value.searchText.text.toString())
+            _state.update { it.copy(isSearching = true) }
+            val userData = userDatastoreRepository.userdataFlow().first()
+            val users = dashboardRepository.searchFriend(
+                currentUserId = userData.id,
+                currentUserGroupIds = state.value.groups.map { it.groupId },
+                searchName = state.value.searchText.text.toString()
+            )
             if (!users.isNullOrEmpty()) {
                 _state.update {
                     it.copy(
-
+                        searchResults = users
                     )
                 }
             }
+            _state.update { it.copy(isSearching = false) }
         }
     }
 

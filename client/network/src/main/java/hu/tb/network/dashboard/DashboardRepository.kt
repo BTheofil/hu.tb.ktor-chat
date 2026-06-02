@@ -20,7 +20,7 @@ import io.ktor.http.contentType
 class DashboardRepository(
     private val client: HttpClient
 ) {
-    suspend fun getUserGroups(userId: Long): List<GroupTypes>? {
+    suspend fun getUserFriends(userId: Long): List<GroupTypes>? {
         try {
             val userDetailsResponse = client.post("/searchUserById") {
                 contentType(ContentType.Application.Json)
@@ -55,17 +55,27 @@ class DashboardRepository(
         }
     }
 
-    suspend fun searchFriend(searchName: String): List<UserMatch>? =
+    suspend fun searchFriend(
+        currentUserId: Long,
+        currentUserGroupIds: List<Long>,
+        searchName: String
+    ): List<UserMatch>? =
         try {
-            val usersResponse = client.post("/searchUserByName") {
+            val searchUsersResponse = client.post("/searchUserByName") {
                 contentType(ContentType.Application.Json)
                 setBody(UserSearchByNameSend(name = searchName))
             }
+            val searchedUsers =
+                searchUsersResponse.body<List<UserDetail>>().filter { it.id != currentUserId }
 
-            usersResponse.body<List<UserDetail>>().map {
+            val isCurrentUserHasGroupWithSearched =
+                searchedUsers.mapNotNull { searchUser -> searchUser.groupIds?.any { groupId -> groupId in currentUserGroupIds } }
+
+            searchedUsers.mapIndexed { index, searchUser ->
                 UserMatch(
-                    id = it.id,
-                    name = it.name
+                    id = searchUser.id,
+                    name = searchUser.name,
+                    isFriend = isCurrentUserHasGroupWithSearched.getOrNull(index) ?: false
                 )
             }
         } catch (e: Exception) {

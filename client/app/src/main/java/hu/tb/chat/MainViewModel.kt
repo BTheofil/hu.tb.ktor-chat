@@ -7,13 +7,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
-import hu.tb.network.login.LoginRepository
+import hu.tb.network.auth.AuthRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 class MainViewModel(
-    private val loginRepository: LoginRepository,
+    private val authRepository: AuthRepository,
     private val userDatastoreRepository: UserDatastoreRepository
 ) : ViewModel() {
 
@@ -28,7 +28,7 @@ class MainViewModel(
                 return@launch
             }
 
-            val userInfo = loginRepository.autoLogin(LoginInfo(userData.name, userData.password))
+            val userInfo = authRepository.autoLogin(LoginInfo(userData.name, userData.password))
             if (userInfo == null) {
                 state = MainState.NoLogin
                 return@launch

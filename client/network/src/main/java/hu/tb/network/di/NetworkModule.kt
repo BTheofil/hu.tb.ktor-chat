@@ -1,7 +1,7 @@
 package hu.tb.network.di
 
 import hu.tb.network.dashboard.DashboardRepository
-import hu.tb.network.login.LoginRepository
+import hu.tb.network.auth.AuthRepository
 import hu.tb.network.message.MessageRepository
 import hu.tb.network.profile.ProfileRepository
 import io.ktor.client.HttpClient
@@ -18,6 +18,7 @@ val networkModule = module {
         HttpClient(OkHttp) {
             install(ContentNegotiation) {
                 json(Json {
+                    ignoreUnknownKeys = true
                     explicitNulls = false
                     prettyPrint = true
                 })
@@ -27,7 +28,7 @@ val networkModule = module {
             }
         }
     }
-    singleOf(::LoginRepository)
+    singleOf(::AuthRepository)
     singleOf(::DashboardRepository)
     singleOf(::ProfileRepository)
     singleOf(::MessageRepository)

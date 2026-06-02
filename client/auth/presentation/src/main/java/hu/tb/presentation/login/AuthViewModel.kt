@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
-import hu.tb.network.login.LoginRepository
+import hu.tb.network.auth.AuthRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import java.time.LocalTime
 import kotlin.time.Duration.Companion.milliseconds
 
 class AuthViewModel(
-    private val loginRepository: LoginRepository,
+    private val authRepository: AuthRepository,
     private val userDatastoreRepository: UserDatastoreRepository
 ) : ViewModel() {
 
@@ -55,7 +55,7 @@ class AuthViewModel(
                 username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
-            val userInfo = loginRepository.handleLogin(loginInfo)
+            val userInfo = authRepository.handleLogin(loginInfo)
 
             if (userInfo == null) {
                 _state.update { it.copy(isLoginHasError = true) }
@@ -83,7 +83,7 @@ class AuthViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isServerCheckLoading = true) }
             delay(5.milliseconds)
-            val status = loginRepository.pingServer()
+            val status = authRepository.pingServer()
             _state.update {
                 it.copy(
                     serverStatus = status,
