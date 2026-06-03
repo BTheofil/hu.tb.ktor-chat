@@ -1,5 +1,6 @@
 package hu.tb.presentation.dashboard
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,12 +39,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
-import hu.tb.domain.GroupTypes
+import hu.tb.domain.Group
 import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
@@ -147,33 +149,31 @@ private fun DashboardScreen(
                             items = state.groups,
                             key = { it.groupId }
                         ) { group ->
-                            when (group) {
-                                is GroupTypes.Complex -> {}
-                                is GroupTypes.Simple -> {
-                                    Row(
-                                        modifier = Modifier
-                                            .clickable(
-                                                onClick = {
-                                                    action(
-                                                        DashboardAction.GroupClick(
-                                                            group.groupId
-                                                        )
-                                                    )
-                                                }
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .clickable(
+                                        onClick = {
+                                            action(
+                                                DashboardAction.GroupClick(
+                                                    group.groupId
+                                                )
                                             )
-                                    ) {
-                                        ProfileBubble(
-                                            firstLetter = group.otherUsername.first().toString()
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            text = group.otherUsername,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            color = MaterialTheme.colorScheme.primary
-                                        )
-                                    }
-                                }
+                                        }
+                                    ),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                ProfileBubble(
+                                    firstLetter = group.otherUsername.first().toString()
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    text = group.otherUsername,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
                         }
                     }
@@ -207,25 +207,29 @@ fun SearchWidget(
                 )
             },
             leadingIcon = {
-                when (searchBarState.currentValue) {
-                    SearchBarValue.Collapsed -> Icon(
-                        painter = painterResource(Icon.person_search),
-                        contentDescription = "person search icon",
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                AnimatedContent(
+                    targetState = searchBarState.currentValue,
+                ) { searchStateValue ->
+                    when (searchStateValue) {
+                        SearchBarValue.Collapsed -> Icon(
+                            painter = painterResource(Icon.person_search),
+                            contentDescription = "person search icon",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
 
-                    SearchBarValue.Expanded -> Icon(
-                        modifier = Modifier
-                            .clickable(
-                                onClick = {
-                                    state.searchText.clearText()
-                                    scope.launch { searchBarState.animateToCollapsed() }
-                                }
-                            ),
-                        painter = painterResource(Icon.arrow_left),
-                        contentDescription = "person search icon",
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                        SearchBarValue.Expanded -> Icon(
+                            modifier = Modifier
+                                .clickable(
+                                    onClick = {
+                                        state.searchText.clearText()
+                                        scope.launch { searchBarState.animateToCollapsed() }
+                                    }
+                                ),
+                            painter = painterResource(Icon.arrow_left),
+                            contentDescription = "person search icon",
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
                 }
             },
             colors = TextFieldDefaults.colors(
@@ -281,6 +285,7 @@ fun SearchWidget(
                             Icon(
                                 modifier = Modifier
                                     .clickable(
+                                        enabled = !user.isFriend,
                                         onClick = {
                                             action(DashboardAction.MakeFriend(user.id))
                                             state.searchText.clearText()
@@ -325,11 +330,11 @@ private fun ProfileBubble(
 @Preview
 @Composable
 private fun DashboardScreenPreview() {
-    val test = List(50, init = { GroupTypes.Simple(groupId = it.toLong(), otherUsername = "abc") })
+    val test = List(50, init = { Group(groupId = it.toLong(), otherUsername = "abc") })
     ChatTheme {
         DashboardScreen(
             state = DashboardState(
-                username = "Exmaple name",
+                username = "Example name",
                 groups = test
             ),
             action = {}
