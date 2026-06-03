@@ -39,14 +39,14 @@ class ChatRepository {
         }
     }.id.value
 
-    fun getUserById(userId: Long): User? = transactionLogger {
-        UserEntity.findById(userId)
-    }?.toDomain()
-
     fun getUserByNameAndPw(searchedName: String, searchedPw: String): User? = transactionLogger {
         UserEntity.all()
             .find { it.name == searchedName && it.password == searchedPw }
             ?.toDomain()
+    }
+
+    fun getUserById(userId: Long): User? = transactionLogger {
+        UserEntity.findById(userId)?.toDomain()
     }
 
     fun getUserByName(searchedName: String): List<User> = transactionLogger {

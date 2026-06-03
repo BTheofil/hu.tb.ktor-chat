@@ -1,10 +1,12 @@
-package hu.tb.network.login
+package hu.tb.network.auth
 
-import hu.tb.network.login.model.response.UserResponse
+import hu.tb.network.auth.model.response.UserResponse
 import hu.tb.domain.LoginInfo
 import hu.tb.domain.ServerStatus
 import hu.tb.domain.UserInfo
-import hu.tb.network.login.model.send.LoginSend
+import hu.tb.network.auth.model.response.UserIdResponse
+import hu.tb.network.auth.model.send.LoginSend
+import hu.tb.network.auth.model.send.SearchUserSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -15,7 +17,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlin.ranges.rangeTo
 
-class LoginRepository(
+class AuthRepository(
     private val client: HttpClient
 ) {
     suspend fun pingServer(): ServerStatus =
@@ -50,7 +52,20 @@ class LoginRepository(
             } else {
                 // user already in db just get a new token
                 val newToken = existUserResponse.body<String>()
-                return UserInfo(token = newToken)
+
+                // get user id also for dataStore
+                val userIdResponse = client.post("/searchUserByNameAndPw") {
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        SearchUserSend(
+                            name = loginInfo.username,
+                            password = loginInfo.password
+                        )
+                    )
+                }
+                val userId = userIdResponse.body<UserIdResponse>().id
+
+                return UserInfo(userId = userId, token = newToken)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -1,7 +1,7 @@
 package hu.tb.network.dashboard
 
+import hu.tb.domain.Group
 import hu.tb.domain.GroupResult
-import hu.tb.domain.GroupTypes
 import hu.tb.domain.UserMatch
 import hu.tb.network.dashboard.model.response.DecodedGroups
 import hu.tb.network.dashboard.model.response.UserDetail
@@ -20,7 +20,7 @@ import io.ktor.http.contentType
 class DashboardRepository(
     private val client: HttpClient
 ) {
-    suspend fun getUserGroups(userId: Long): List<GroupTypes>? {
+    suspend fun getUserFriends(userId: Long): List<Group>? {
         try {
             val userDetailsResponse = client.post("/searchUserById") {
                 contentType(ContentType.Application.Json)
@@ -33,19 +33,12 @@ class DashboardRepository(
                     contentType(ContentType.Application.Json)
                     setBody(DecodeGroupSend(userId = userId, groupIds = groupIds))
                 }
-                val allGroups = decodeResponse.body<DecodedGroups>().groups
+                val allGroups = decodeResponse.body<List<DecodedGroups>>()
                 return allGroups.map {
-                    if (it.otherUserName != null) {
-                        GroupTypes.Simple(
-                            groupId = it.groupId,
-                            otherUsername = it.otherUserName
-                        )
-                    } else {
-                        GroupTypes.Complex(
-                            groupId = it.groupId,
-                            participantNames = it.memberNames ?: emptyList()
-                        )
-                    }
+                    Group(
+                        groupId = it.groupId,
+                        otherUsername = it.otherUserName
+                    )
                 }
             }
             return null
@@ -55,17 +48,27 @@ class DashboardRepository(
         }
     }
 
-    suspend fun searchFriend(searchName: String): List<UserMatch>? =
+    suspend fun searchFriend(
+        currentUserId: Long,
+        currentUserGroupIds: List<Long>,
+        searchName: String
+    ): List<UserMatch>? =
         try {
-            val usersResponse = client.post("/searchUserByName") {
+            val searchUsersResponse = client.post("/searchUserByName") {
                 contentType(ContentType.Application.Json)
                 setBody(UserSearchByNameSend(name = searchName))
             }
+            val searchedUsers =
+                searchUsersResponse.body<List<UserDetail>>().filter { it.id != currentUserId }
 
-            usersResponse.body<List<UserDetail>>().map {
+            val isCurrentUserHasGroupWithSearched =
+                searchedUsers.mapNotNull { searchUser -> searchUser.groupIds?.any { groupId -> groupId in currentUserGroupIds } }
+
+            searchedUsers.mapIndexed { index, searchUser ->
                 UserMatch(
-                    id = it.id,
-                    name = it.name
+                    id = searchUser.id,
+                    name = searchUser.name,
+                    isFriend = isCurrentUserHasGroupWithSearched.getOrNull(index) ?: false
                 )
             }
         } catch (e: Exception) {

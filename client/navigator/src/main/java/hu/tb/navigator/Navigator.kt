@@ -43,7 +43,6 @@ fun Navigator(
                         when (it) {
                             is DashboardAction.GroupClick -> backStack.add(Destination.Message)
                             DashboardAction.ProfileClick -> backStack.add(Destination.Profile)
-                            DashboardAction.FindFriendClick -> TODO()
                         }
                     }
                 )

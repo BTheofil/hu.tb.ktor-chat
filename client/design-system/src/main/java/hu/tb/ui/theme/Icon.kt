@@ -12,4 +12,7 @@ object Icon {
     val settings = R.drawable.settings
     val person_search = R.drawable.person_search
     val send = R.drawable.send
+    val arrow_left = R.drawable.arrow_left
+    val group_add = R.drawable.group_add
+    val check_circle = R.drawable.check_circle
 }
