@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.auth.domain)
     implementation(projects.dashboard.domain)
     implementation(projects.profile.domain)
+    implementation(projects.datastore)
 
     implementation(libs.bundles.koin)
     implementation(libs.bundles.ktor)

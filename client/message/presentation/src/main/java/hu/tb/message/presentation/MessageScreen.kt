@@ -27,8 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,7 +43,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun MessageScreen(
     viewModel: MessageViewModel = koinViewModel(),
+    groupId: Long
 ) {
+    LaunchedEffect(Unit) {
+        viewModel.connectGroup(groupId)
+    }
+
     MessageScreen(
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = viewModel::action
@@ -123,13 +130,9 @@ private fun MessageControl(
         Spacer(Modifier.width(16.dp))
         Box(
             modifier = Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape
-                )
-                .clickable(
-                    onClick = sendClick
-                ),
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colorScheme.primary)
+                .clickable(onClick = sendClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(

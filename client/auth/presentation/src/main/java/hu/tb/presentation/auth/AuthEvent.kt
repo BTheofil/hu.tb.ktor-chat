@@ -1,4 +1,4 @@
-package hu.tb.presentation.login
+package hu.tb.presentation.auth
 
 sealed interface AuthEvent {
     data object AuthSuccess: AuthEvent

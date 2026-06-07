@@ -7,6 +7,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.network)
     implementation(projects.designSystem)
     implementation(projects.datastore)
 
