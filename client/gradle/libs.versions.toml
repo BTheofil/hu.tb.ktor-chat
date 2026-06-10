@@ -35,6 +35,7 @@ ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "k
 ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-seralization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
+ktor-websocket = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastoreVersion" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerJson" }
 
@@ -63,7 +64,7 @@ koin = [
     "koin", "koin-compose"
 ]
 ktor = [
-    "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json", "ktor-auth"
+    "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json", "ktor-auth", "ktor-websocket"
 ]
 datastore = [
     "datastore", "kotlinx-serialization-json"
