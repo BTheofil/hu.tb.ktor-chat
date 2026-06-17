@@ -27,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,17 +37,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MessageScreen(
-    viewModel: MessageViewModel = koinViewModel(),
-    groupId: Long
+    viewModel: MessageViewModel
 ) {
-    LaunchedEffect(Unit) {
-        viewModel.connectGroup(groupId)
-    }
-
     MessageScreen(
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = viewModel::action

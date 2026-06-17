@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.isActive
 import kotlinx.serialization.json.Json
 
 class MessageRepository(
@@ -24,7 +23,7 @@ class MessageRepository(
 ) {
     private var session: WebSocketSession? = null
 
-    suspend fun sendMessage(groupId: Long): Flow<Message>? {
+    suspend fun connectGroupObserver(groupId: Long): Flow<Message>? =
         try {
             val token = userDatastore.userdataFlow().first().token
             session = client.webSocketSession(
@@ -35,7 +34,7 @@ class MessageRepository(
                     header(HttpHeaders.Authorization, "Bearer $token")
                 }
             )
-            
+
             return session?.incoming
                 ?.consumeAsFlow()
                 ?.filterIsInstance<Frame.Text>()
@@ -44,7 +43,13 @@ class MessageRepository(
             e.printStackTrace()
             return null
         }
-    }
+
+    suspend fun sendMessage(message: String) =
+        try {
+            session?.send(Frame.Text(message))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 }
 
 private const val CLIENT_PARAMETER = "targetGroupId"

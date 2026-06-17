@@ -17,5 +17,6 @@ dependencies {
     implementation(projects.profile.presentation)
     implementation(projects.message.presentation)
 
+    implementation(libs.koin.compose)
     implementation(libs.bundles.nav3)
 }
