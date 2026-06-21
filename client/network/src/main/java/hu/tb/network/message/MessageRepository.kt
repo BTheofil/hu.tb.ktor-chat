@@ -1,7 +1,8 @@
 package hu.tb.network.message
 
 import hu.tb.datastore.UserDatastoreRepository
-import hu.tb.network.message.model.response.Message
+import hu.tb.message.domain.Message
+import hu.tb.network.message.model.response.MessageResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.webSocketSession
 import io.ktor.client.request.header
@@ -16,6 +17,9 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 class MessageRepository(
     private val client: HttpClient,
@@ -38,7 +42,19 @@ class MessageRepository(
             return session?.incoming
                 ?.consumeAsFlow()
                 ?.filterIsInstance<Frame.Text>()
-                ?.map { Json.decodeFromString<Message>(it.readText()) }
+                ?.map {
+                    val messageDto = Json.decodeFromString<MessageResponse>(it.readText())
+                    with(messageDto) {
+                        Message(
+                            senderId = this.senderId,
+                            content = this.content,
+                            timeStamp = LocalDateTime.ofInstant(
+                                Instant.ofEpochMilli(this.timestamp),
+                                ZoneId.systemDefault()
+                            )
+                        )
+                    }
+                }
         } catch (e: Exception) {
             e.printStackTrace()
             return null

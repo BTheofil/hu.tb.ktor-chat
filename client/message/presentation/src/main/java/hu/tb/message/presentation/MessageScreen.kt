@@ -70,6 +70,7 @@ private fun MessageScreen(
             ) {
                 items(
                     items = state.messages,
+                    key = { it.timeStamp }
                 ) { message ->
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -79,7 +80,7 @@ private fun MessageScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(8.dp),
-                            text = message,
+                            text = message.content,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             style = MaterialTheme.typography.bodyMedium
                         )

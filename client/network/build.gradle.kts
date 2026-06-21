@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.chat.android.library)
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("plugin.serialization") version "2.4.0"
 }
 
 android {
@@ -11,6 +11,7 @@ dependencies {
     implementation(projects.auth.domain)
     implementation(projects.dashboard.domain)
     implementation(projects.profile.domain)
+    implementation(projects.message.domain)
     implementation(projects.datastore)
 
     implementation(libs.bundles.koin)

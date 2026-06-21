@@ -1,5 +1,6 @@
 package hu.tb.message.presentation
 
+import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.network.message.MessageRepository
@@ -21,9 +22,11 @@ class MessageViewModel(
         viewModelScope.launch {
             messageRepository.connectGroupObserver(groupId)
                 ?.collectLatest { messageData ->
-                    _state.update { it.copy(
-
-                    ) }
+                    _state.update {
+                        it.copy(
+                            messages = state.value.messages + messageData
+                        )
+                    }
                 }
         }
     }
@@ -36,6 +39,11 @@ class MessageViewModel(
     }
 
     private fun sendMessage() {
+        viewModelScope.launch {
+            val message = state.value.currentMessageState.text.toString()
+            messageRepository.sendMessage(message = message)
 
+            _state.value.currentMessageState.clearText()
+        }
     }
 }
