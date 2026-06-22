@@ -2,6 +2,7 @@ package hu.tb.message.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -35,8 +36,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
+import hu.tb.message.domain.Message
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
+import java.time.LocalDateTime
 
 @Composable
 fun MessageScreen(
@@ -66,11 +69,11 @@ private fun MessageScreen(
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
             ) {
                 items(
                     items = state.messages,
-                    key = { it.timeStamp }
                 ) { message ->
                     Card(
                         shape = RoundedCornerShape(16.dp),
@@ -146,7 +149,20 @@ private fun MessageControl(
 private fun MessageScreenPreview() {
     ChatTheme {
         MessageScreen(
-            state = MessageState(),
+            state = MessageState(
+                messages = listOf(
+                    Message(
+                        senderId = 1,
+                        content = "test message",
+                        timeStamp = LocalDateTime.of(2026, 6, 22, 1, 0)
+                    ),
+                    Message(
+                        senderId = 2,
+                        content = "other message",
+                        timeStamp = LocalDateTime.of(2026, 6, 22, 1, 1)
+                    )
+                )
+            ),
             action = {}
         )
     }

@@ -20,14 +20,8 @@ class MessageViewModel(
 
     init {
         viewModelScope.launch {
-            messageRepository.connectGroupObserver(groupId)
-                ?.collectLatest { messageData ->
-                    _state.update {
-                        it.copy(
-                            messages = state.value.messages + messageData
-                        )
-                    }
-                }
+            getMessageHistory()
+            connectGroup()
         }
     }
 
@@ -36,6 +30,30 @@ class MessageViewModel(
             MessageAction.DeleteMessage -> TODO()
             MessageAction.SendMessage -> sendMessage()
         }
+    }
+
+    private suspend fun connectGroup() {
+        messageRepository.connectGroupObserver(groupId)
+            ?.collectLatest { messageData ->
+                _state.update {
+                    it.copy(
+                        messages = state.value.messages + messageData
+                    )
+                }
+            }
+    }
+
+    private suspend fun getMessageHistory() {
+
+        val messages = messageRepository.getMessageHistory(groupId.toInt())
+        if (messages != null) {
+            _state.update {
+                it.copy(
+                    messages = messages
+                )
+            }
+        }
+
     }
 
     private fun sendMessage() {
