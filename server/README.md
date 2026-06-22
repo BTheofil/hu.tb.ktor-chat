@@ -7,7 +7,7 @@ This is the server for the message handler app
 release new version on docker-hub
 
 1) Run docker-hub desktop
-2) Increase the version number in build.gradle.kts file
+2) Increase the version number in build.gradle.kts file AND the swagger api
 3) Run this command to push the version on docker-hub
 
 ```gradle

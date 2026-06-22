@@ -4,25 +4,17 @@ import hu.tb.datasource.data.repository.ChatRepository
 import hu.tb.domain.receive.MessageDeleteReceive
 import hu.tb.domain.receive.MessageHistoryReceive
 import hu.tb.domain.send.Message
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.receive
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.websocket.DefaultWebSocketServerSession
-import io.ktor.server.websocket.sendSerialized
-import io.ktor.server.websocket.webSocket
-import io.ktor.websocket.CloseReason
-import io.ktor.websocket.Frame
-import io.ktor.websocket.close
-import io.ktor.websocket.readText
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.flow.consumeAsFlow
 import org.koin.ktor.ext.inject
-import java.util.Collections
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 fun Route.messageApi() {
@@ -77,7 +69,7 @@ fun Route.messageApi() {
         }
     }
 
-    get("/groupHistory") {
+    post("/groupHistory") {
         val messageHistory = call.receive<MessageHistoryReceive>()
 
         val messagesDomain = chatRepository.getMessageHistory(

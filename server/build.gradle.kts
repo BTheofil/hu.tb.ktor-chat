@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "hu.tb"
-version = "1.1.2"
+version = "1.1.3"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

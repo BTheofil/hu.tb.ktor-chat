@@ -354,7 +354,7 @@ class RoutingTest {
             evelin.join()
         }
 
-        val messageHistory = client.get("/groupHistory") {
+        val messageHistory = client.post("/groupHistory") {
             contentType(ContentType.Application.Json)
             setBody(MessageHistoryReceive(groupId = targetGroupId))
         }
@@ -375,7 +375,7 @@ class RoutingTest {
         }
         assertEquals(HttpStatusCode.OK, deleteData.status)
 
-        val shorterMessageHistory = client.get("/groupHistory") {
+        val shorterMessageHistory = client.post("/groupHistory") {
             contentType(ContentType.Application.Json)
             setBody(MessageHistoryReceive(groupId = targetGroupId))
         }
