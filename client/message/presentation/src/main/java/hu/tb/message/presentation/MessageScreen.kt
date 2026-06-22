@@ -2,6 +2,7 @@ package hu.tb.message.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -29,18 +30,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
+import hu.tb.message.domain.Message
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
-import org.koin.androidx.compose.koinViewModel
+import java.time.LocalDateTime
 
 @Composable
 fun MessageScreen(
-    viewModel: MessageViewModel = koinViewModel(),
+    viewModel: MessageViewModel
 ) {
     MessageScreen(
         state = viewModel.state.collectAsStateWithLifecycle().value,
@@ -66,7 +69,8 @@ private fun MessageScreen(
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
             ) {
                 items(
                     items = state.messages,
@@ -79,7 +83,7 @@ private fun MessageScreen(
                     ) {
                         Text(
                             modifier = Modifier.padding(8.dp),
-                            text = message,
+                            text = message.content,
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -123,13 +127,9 @@ private fun MessageControl(
         Spacer(Modifier.width(16.dp))
         Box(
             modifier = Modifier
-                .background(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape
-                )
-                .clickable(
-                    onClick = sendClick
-                ),
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colorScheme.primary)
+                .clickable(onClick = sendClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -149,7 +149,20 @@ private fun MessageControl(
 private fun MessageScreenPreview() {
     ChatTheme {
         MessageScreen(
-            state = MessageState(),
+            state = MessageState(
+                messages = listOf(
+                    Message(
+                        senderId = 1,
+                        content = "test message",
+                        timeStamp = LocalDateTime.of(2026, 6, 22, 1, 0)
+                    ),
+                    Message(
+                        senderId = 2,
+                        content = "other message",
+                        timeStamp = LocalDateTime.of(2026, 6, 22, 1, 1)
+                    )
+                )
+            ),
             action = {}
         )
     }

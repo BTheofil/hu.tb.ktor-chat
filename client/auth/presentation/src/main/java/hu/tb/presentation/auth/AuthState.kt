@@ -1,4 +1,4 @@
-package hu.tb.presentation.login
+package hu.tb.presentation.auth
 
 import androidx.compose.foundation.text.input.TextFieldState
 import hu.tb.domain.ServerStatus

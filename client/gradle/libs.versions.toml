@@ -2,17 +2,17 @@
 agp = "9.2.1"
 androidTools = "32.2.1"
 coreSplashscreen = "1.2.0"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 composeBom = "2026.05.01"
 #ksp = "2.3.4"
-koin = "4.2.1"
+koin = "4.2.2"
 uiTextGoogleFonts = "1.11.2"
 ktor = "3.5.0"
 datastoreVersion = "1.2.1"
 kotlinxSerJson = "1.11.0"
-kotlinxSerJsonPlugin = "2.3.21"
+kotlinxSerJsonPlugin = "2.4.0"
 nav3Core = "1.1.2"
-composeAnalyzer = "0.7.5"
+composeAnalyzer = "0.10.0"
 
 #Project settings
 minSdk = "26"
@@ -34,6 +34,8 @@ ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor"
 ktor-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor" }
 ktor-content-negotiation = { group = "io.ktor", name = "ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-seralization-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-auth = { group = "io.ktor", name = "ktor-client-auth", version.ref = "ktor" }
+ktor-websocket = { group = "io.ktor", name = "ktor-client-websockets", version.ref = "ktor" }
 datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastoreVersion" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerJson" }
 
@@ -62,7 +64,7 @@ koin = [
     "koin", "koin-compose"
 ]
 ktor = [
-    "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json"
+    "ktor-core", "ktor-okhttp", "ktor-content-negotiation", "ktor-seralization-json", "ktor-auth", "ktor-websocket"
 ]
 datastore = [
     "datastore", "kotlinx-serialization-json"

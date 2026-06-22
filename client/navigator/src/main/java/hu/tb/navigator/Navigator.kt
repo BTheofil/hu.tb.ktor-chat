@@ -7,17 +7,20 @@ import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import hu.tb.message.presentation.MessageScreen
+import hu.tb.message.presentation.MessageViewModel
 import hu.tb.presentation.dashboard.DashboardAction
 import hu.tb.presentation.dashboard.DashboardScreen
-import hu.tb.presentation.login.AuthScreen
+import hu.tb.presentation.auth.AuthScreen
 import hu.tb.profile.presentation.ProfileScreen
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @Stable
 sealed interface Destination {
     data object Auth : Destination
     data object Dashboard : Destination
     data object Profile : Destination
-    data object Message : Destination
+    data class Message(val groupId: Long) : Destination
 }
 
 @Composable
@@ -41,7 +44,12 @@ fun Navigator(
                 DashboardScreen(
                     navigationRequest = {
                         when (it) {
-                            is DashboardAction.GroupClick -> backStack.add(Destination.Message)
+                            is DashboardAction.GroupClick -> backStack.add(
+                                Destination.Message(
+                                    groupId = it.groupId
+                                )
+                            )
+
                             DashboardAction.ProfileClick -> backStack.add(Destination.Profile)
                         }
                     }
@@ -55,8 +63,11 @@ fun Navigator(
                     }
                 )
             }
-            entry<Destination.Message> {
-                MessageScreen()
+            entry<Destination.Message> { key ->
+                val viewModel = koinViewModel<MessageViewModel> { parametersOf(key.groupId) }
+                MessageScreen(
+                    viewModel = viewModel
+                )
             }
         }
     )

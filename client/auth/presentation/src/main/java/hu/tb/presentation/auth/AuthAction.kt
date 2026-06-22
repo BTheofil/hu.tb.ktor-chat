@@ -1,4 +1,4 @@
-package hu.tb.presentation.login
+package hu.tb.presentation.auth
 
 sealed interface AuthAction {
     data object Enter: AuthAction

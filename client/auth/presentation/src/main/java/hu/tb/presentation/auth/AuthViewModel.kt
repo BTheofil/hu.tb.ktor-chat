@@ -1,4 +1,4 @@
-package hu.tb.presentation.login
+package hu.tb.presentation.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

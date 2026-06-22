@@ -7,8 +7,10 @@ android {
 }
 
 dependencies {
+    implementation(projects.network)
     implementation(projects.designSystem)
     implementation(projects.datastore)
+    implementation(projects.message.domain)
 
     implementation(libs.bundles.koin)
 }

@@ -2,9 +2,10 @@ package hu.tb.message.presentation
 
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Stable
+import hu.tb.message.domain.Message
 
 @Stable
 data class MessageState(
     val currentMessageState: TextFieldState = TextFieldState(),
-    val messages: List<String> = emptyList()
+    val messages: List<Message> = emptyList()
 )
