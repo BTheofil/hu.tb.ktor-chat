@@ -22,11 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +35,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.message.domain.Message
+import hu.tb.message.presentation.components.MessageBubble
+import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
 import java.time.LocalDateTime
@@ -64,6 +64,7 @@ private fun MessageScreen(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .clearFocus()
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -75,18 +76,11 @@ private fun MessageScreen(
                 items(
                     items = state.messages,
                 ) { message ->
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = if (state.userId == message.senderId) Alignment.CenterEnd else Alignment.CenterStart
                     ) {
-                        Text(
-                            modifier = Modifier.padding(8.dp),
-                            text = message.content,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
+                        MessageBubble(content = message.content)
                     }
                 }
             }
@@ -121,7 +115,7 @@ private fun MessageControl(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(vertical = 8.dp, horizontal = 10.dp),
-                state = textState
+                state = textState,
             )
         }
         Spacer(Modifier.width(16.dp))

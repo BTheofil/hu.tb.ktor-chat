@@ -6,6 +6,7 @@ import hu.tb.message.domain.Message
 
 @Stable
 data class MessageState(
+    val userId: Long = -1,
     val currentMessageState: TextFieldState = TextFieldState(),
     val messages: List<Message> = emptyList()
 )

@@ -3,16 +3,19 @@ package hu.tb.message.presentation
 import androidx.compose.foundation.text.input.clearText
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.network.message.MessageRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class MessageViewModel(
     val groupId: Long,
-    private val messageRepository: MessageRepository
+    private val messageRepository: MessageRepository,
+    private val userDataStore: UserDatastoreRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MessageState())
@@ -20,6 +23,9 @@ class MessageViewModel(
 
     init {
         viewModelScope.launch {
+            val userId = userDataStore.userdataFlow().first().id
+            _state.update { it.copy(userId = userId) }
+
             getMessageHistory()
             connectGroup()
         }
