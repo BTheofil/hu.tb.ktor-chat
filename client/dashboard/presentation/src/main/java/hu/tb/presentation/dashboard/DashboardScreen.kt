@@ -65,7 +65,8 @@ fun DashboardScreen(
             when (it) {
                 is DashboardAction.GroupClick -> navigationRequest(
                     DashboardAction.GroupClick(
-                        groupId = it.groupId
+                        groupId = it.groupId,
+                        otherUserName = it.otherUserName
                     )
                 )
 
@@ -156,7 +157,8 @@ private fun DashboardScreen(
                                         onClick = {
                                             action(
                                                 DashboardAction.GroupClick(
-                                                    group.groupId
+                                                    groupId = group.groupId,
+                                                    otherUserName = group.otherUsername
                                                 )
                                             )
                                         }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 class MessageViewModel(
     val groupId: Long,
+    val otherUserName: String,
     private val messageRepository: MessageRepository,
     private val userDataStore: UserDatastoreRepository
 ) : ViewModel() {
@@ -24,21 +25,26 @@ class MessageViewModel(
     init {
         viewModelScope.launch {
             val userId = userDataStore.userdataFlow().first().id
-            _state.update { it.copy(userId = userId) }
+            _state.update {
+                it.copy(
+                    userId = userId,
+                    otherUserName = otherUserName
+                )
+            }
 
             getMessageHistory()
             connectGroup()
         }
     }
 
-    fun action(action: MessageAction) {
+    fun action(action: MessageAction) =
         when (action) {
             MessageAction.DeleteMessage -> TODO()
             MessageAction.SendMessage -> sendMessage()
+            else -> {}
         }
-    }
 
-    private suspend fun connectGroup() {
+    private suspend fun connectGroup() =
         messageRepository.connectGroupObserver(groupId)
             ?.collectLatest { messageData ->
                 _state.update {
@@ -47,10 +53,8 @@ class MessageViewModel(
                     )
                 }
             }
-    }
 
     private suspend fun getMessageHistory() {
-
         val messages = messageRepository.getMessageHistory(groupId.toInt())
         if (messages != null) {
             _state.update {
@@ -59,15 +63,13 @@ class MessageViewModel(
                 )
             }
         }
-
     }
 
-    private fun sendMessage() {
-        viewModelScope.launch {
-            val message = state.value.currentMessageState.text.toString()
-            messageRepository.sendMessage(message = message)
+    private fun sendMessage() = viewModelScope.launch {
+        val message = state.value.currentMessageState.text.toString()
+        messageRepository.sendMessage(message = message)
 
-            _state.value.currentMessageState.clearText()
-        }
+        _state.value.currentMessageState.clearText()
     }
+
 }
