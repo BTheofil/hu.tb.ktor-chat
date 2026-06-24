@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -171,7 +172,8 @@ private fun MessageControl(
         Card(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(),
+                .fillMaxHeight()
+                .imePadding(),
             shape = RoundedCornerShape(16.dp)
         ) {
             BasicTextField(
@@ -192,7 +194,7 @@ private fun MessageControl(
             Icon(
                 modifier = Modifier
                     .padding(6.dp)
-                    .size(24.dp),
+                    .size(22.dp),
                 painter = painterResource(Icon.send),
                 contentDescription = "send icon",
                 tint = MaterialTheme.colorScheme.onPrimary
