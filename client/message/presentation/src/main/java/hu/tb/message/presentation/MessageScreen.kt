@@ -116,7 +116,10 @@ private fun MessageScreen(
                             .animateItem(),
                         contentAlignment = if (state.userId == message.senderId) Alignment.CenterEnd else Alignment.CenterStart
                     ) {
-                        MessageBubble(content = message.content)
+                        MessageBubble(
+                            content = message.content,
+                            messageTimeSent = "${message.timeStamp.hour}:${message.timeStamp.minute}"
+                        )
                     }
                 }
             }
