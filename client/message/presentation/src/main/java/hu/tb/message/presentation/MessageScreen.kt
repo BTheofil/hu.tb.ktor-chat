@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -53,6 +54,7 @@ import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun MessageScreen(
@@ -77,6 +79,9 @@ private fun MessageScreen(
     action: (MessageAction) -> Unit
 ) {
     val listState = rememberLazyListState()
+    val groupedMessages = remember(state.messages.size) {
+        state.messages.groupBy { it.timeStamp.toLocalDate() }
+    }
 
     LaunchedEffect(state.messages.size) {
         if (state.messages.isNotEmpty()) {
@@ -107,20 +112,40 @@ private fun MessageScreen(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
             ) {
-                items(
-                    items = state.messages,
-                ) { message ->
-                    val isSelfMessage = state.userId == message.senderId
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateItem(),
-                        contentAlignment = if (isSelfMessage) Alignment.CenterEnd else Alignment.CenterStart
-                    ) {
-                        MessageBubble(
-                            content = message.content,
-                            messageTimeSent = "${message.timeStamp.hour}:${message.timeStamp.minute}"
-                        )
+                groupedMessages.forEach { (date, messages) ->
+                    item(
+                        content = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                HorizontalDivider(Modifier.weight(1f))
+                                Text(
+                                    modifier = Modifier.padding(horizontal = 12.dp),
+                                    text = date.format(DateTimeFormatter.ofPattern("yyyy. MMMM d.")),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.secondary.copy(alpha = .7f)
+                                )
+                                HorizontalDivider(Modifier.weight(1f))
+                            }
+                        }
+                    )
+                    items(
+                        items = messages,
+                    ) { message ->
+                        val isSelfMessage = state.userId == message.senderId
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateItem(),
+                            contentAlignment = if (isSelfMessage) Alignment.CenterEnd else Alignment.CenterStart
+                        ) {
+                            MessageBubble(
+                                content = message.content,
+                                messageTimeSent = "${message.timeStamp.hour}:${message.timeStamp.minute}"
+                            )
+                        }
                     }
                 }
             }
