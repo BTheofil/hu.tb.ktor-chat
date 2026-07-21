@@ -8,11 +8,11 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,13 +34,11 @@ import hu.tb.ui.theme.ChatTheme
 fun MessageBubble(
     modifier: Modifier = Modifier,
     content: String,
-    messageTimeSent: String
+    messageTimeSent: String,
 ) {
     var isExpanded by remember { mutableStateOf(true) }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Column {
         Card(
             modifier = modifier
                 .clickable(
@@ -62,26 +60,34 @@ fun MessageBubble(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        AnimatedContent(
-            targetState = isExpanded,
-            transitionSpec = {
-                (fadeIn() + slideInHorizontally())
-                    .togetherWith(
-                        exit = (fadeOut() + slideOutHorizontally())
-                    )
-            }
-        ) { isExpanded ->
-            if (isExpanded) {
-                Row {
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = messageTimeSent,
-                        color = MaterialTheme.colorScheme.tertiary,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
+        TimeContent(
+            isExpanded = isExpanded,
+            messageTimeSent = messageTimeSent
+        )
+    }
+}
 
-            }
+@Composable
+private fun TimeContent(
+    isExpanded: Boolean,
+    messageTimeSent: String
+) {
+    Spacer(Modifier.height(4.dp))
+    AnimatedContent(
+        targetState = isExpanded,
+        transitionSpec = {
+            (fadeIn() + slideInHorizontally())
+                .togetherWith(
+                    exit = (fadeOut() + slideOutHorizontally())
+                )
+        }
+    ) { isExpanded ->
+        if (isExpanded) {
+            Text(
+                text = messageTimeSent,
+                color = MaterialTheme.colorScheme.tertiary,
+                style = MaterialTheme.typography.labelMedium
+            )
         }
     }
 }

@@ -110,11 +110,12 @@ private fun MessageScreen(
                 items(
                     items = state.messages,
                 ) { message ->
+                    val isSelfMessage = state.userId == message.senderId
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateItem(),
-                        contentAlignment = if (state.userId == message.senderId) Alignment.CenterEnd else Alignment.CenterStart
+                        contentAlignment = if (isSelfMessage) Alignment.CenterEnd else Alignment.CenterStart
                     ) {
                         MessageBubble(
                             content = message.content,
@@ -225,6 +226,7 @@ private fun MessageScreenPreview() {
     ChatTheme {
         MessageScreen(
             state = MessageState(
+                userId = 2,
                 otherUserName = "Other_user",
                 messages = listOf(
                     Message(
