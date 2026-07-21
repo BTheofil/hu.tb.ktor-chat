@@ -36,7 +36,7 @@ fun MessageBubble(
     content: String,
     messageTimeSent: String,
 ) {
-    var isExpanded by remember { mutableStateOf(true) }
+    var isExpanded by remember { mutableStateOf(false) }
 
     Column {
         Card(
