@@ -141,9 +141,10 @@ private fun MessageScreen(
                                 .animateItem(),
                             contentAlignment = if (isSelfMessage) Alignment.CenterEnd else Alignment.CenterStart
                         ) {
+                            val formattedMinute = if (message.timeStamp.minute < 10) "0${message.timeStamp.minute}" else message.timeStamp.minute
                             MessageBubble(
                                 content = message.content,
-                                messageTimeSent = "${message.timeStamp.hour}:${message.timeStamp.minute}"
+                                messageTimeSent = "${message.timeStamp.hour}:$formattedMinute"
                             )
                         }
                     }
