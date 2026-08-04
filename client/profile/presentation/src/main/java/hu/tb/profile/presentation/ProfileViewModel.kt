@@ -34,6 +34,7 @@ class ProfileViewModel(
     fun action(action: ProfileAction) {
         when (action) {
             ProfileAction.DeleteUserClick -> deleteUser()
+            ProfileAction.CloseClick -> Unit
         }
     }
 

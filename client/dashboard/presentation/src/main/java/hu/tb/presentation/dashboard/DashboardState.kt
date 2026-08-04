@@ -11,5 +11,6 @@ data class DashboardState(
     val groups: List<Group> = emptyList(),
     val searchText: TextFieldState = TextFieldState(),
     val searchResults: List<UserMatch> = emptyList(),
-    val isSearching: Boolean = false
+    val isSearching: Boolean = false,
+    val groupIdPendingLeave: Long? = null
 )

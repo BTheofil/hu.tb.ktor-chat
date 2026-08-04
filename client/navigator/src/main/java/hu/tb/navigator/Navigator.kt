@@ -20,7 +20,11 @@ sealed interface Destination {
     data object Auth : Destination
     data object Dashboard : Destination
     data object Profile : Destination
-    data class Message(val groupId: Long, val otherUserName: String) : Destination
+    data class Message(
+        val groupId: Long,
+        val otherUserName: String,
+        val hasOtherUserLeft: Boolean
+    ) : Destination
 }
 
 @Composable
@@ -47,7 +51,8 @@ fun Navigator(
                             is DashboardAction.GroupClick -> backStack.add(
                                 Destination.Message(
                                     groupId = it.groupId,
-                                    otherUserName = it.otherUserName
+                                    otherUserName = it.otherUserName,
+                                    hasOtherUserLeft = it.hasOtherUserLeft
                                 )
                             )
 
@@ -58,6 +63,9 @@ fun Navigator(
             }
             entry<Destination.Profile> {
                 ProfileScreen(
+                    navigateBack = {
+                        backStack.removeAt(backStack.lastIndex)
+                    },
                     navigationRequest = {
                         backStack.clear()
                         backStack.add(Destination.Auth)
@@ -65,12 +73,13 @@ fun Navigator(
                 )
             }
             entry<Destination.Message> { key ->
-                val viewModel =
-                    koinViewModel<MessageViewModel> { parametersOf(key.groupId, key.otherUserName) }
+                val viewModel = koinViewModel<MessageViewModel> {
+                    parametersOf(key.groupId, key.otherUserName, key.hasOtherUserLeft)
+                }
                 MessageScreen(
                     viewModel = viewModel,
                     navigationRequest = {
-                        backStack.removeAt(1)
+                        backStack.removeAt(backStack.lastIndex)
                     }
                 )
             }

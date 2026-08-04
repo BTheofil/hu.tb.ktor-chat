@@ -1,8 +1,10 @@
 package hu.tb.presentation.dashboard
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,10 +34,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarValue
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.domain.Group
+import hu.tb.ui.component.ConfirmDialog
 import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
@@ -59,14 +66,29 @@ fun DashboardScreen(
     viewModel: DashboardViewModel = koinViewModel(),
     navigationRequest: (NavigationRequest) -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            val message = when (event) {
+                DashboardEvent.AddFriendFailed -> "Could not add friend, try again."
+                DashboardEvent.LeaveGroupFailed -> "Could not leave the chat, try again."
+                DashboardEvent.SearchFailed -> "Search failed, check your connection."
+            }
+            snackbarHostState.showSnackbar(message = message)
+        }
+    }
+
     DashboardScreen(
+        snackbarHostState = snackbarHostState,
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = {
             when (it) {
                 is DashboardAction.GroupClick -> navigationRequest(
                     DashboardAction.GroupClick(
                         groupId = it.groupId,
-                        otherUserName = it.otherUserName
+                        otherUserName = it.otherUserName,
+                        hasOtherUserLeft = it.hasOtherUserLeft
                     )
                 )
 
@@ -77,16 +99,21 @@ fun DashboardScreen(
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @TraceRecomposition
 @Composable
 private fun DashboardScreen(
+    snackbarHostState: SnackbarHostState,
     state: DashboardState,
     action: (DashboardAction) -> Unit
 ) {
     Scaffold(
         modifier = Modifier
             .fillMaxWidth()
-            .clearFocus()
+            .clearFocus(),
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -153,28 +180,38 @@ private fun DashboardScreen(
                             Row(
                                 modifier = Modifier
                                     .clip(RoundedCornerShape(16.dp))
-                                    .clickable(
+                                    .combinedClickable(
                                         onClick = {
                                             action(
                                                 DashboardAction.GroupClick(
                                                     groupId = group.groupId,
-                                                    otherUserName = group.otherUsername
+                                                    otherUserName = group.otherUsername,
+                                                    hasOtherUserLeft = group.hasOtherUserLeft
                                                 )
                                             )
+                                        },
+                                        onLongClick = {
+                                            action(DashboardAction.LongPressGroup(group.groupId))
                                         }
                                     ),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 ProfileBubble(
-                                    firstLetter = group.otherUsername.first().toString()
+                                    firstLetter = group.otherUsername.firstOrNull()?.toString()
+                                        ?: CLOSED_CHAT_INITIAL
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(
                                     modifier = Modifier
                                         .fillMaxWidth(),
-                                    text = group.otherUsername,
+                                    text = if (group.hasOtherUserLeft) CLOSED_CHAT_LABEL
+                                    else group.otherUsername,
                                     style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = if (group.hasOtherUserLeft) {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = .6f)
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    }
                                 )
                             }
                         }
@@ -183,7 +220,20 @@ private fun DashboardScreen(
             }
         }
     }
+
+    if (state.groupIdPendingLeave != null) {
+        ConfirmDialog(
+            title = "Leave chat",
+            text = "You will no longer see this chat. You have to add each other again to send messages.",
+            confirmLabel = "Leave",
+            onConfirm = { action(DashboardAction.ConfirmLeaveGroup) },
+            onDismiss = { action(DashboardAction.DismissDialog) }
+        )
+    }
 }
+
+private const val CLOSED_CHAT_LABEL = "Chat closed"
+private const val CLOSED_CHAT_INITIAL = "-"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @TraceRecomposition
@@ -335,6 +385,7 @@ private fun DashboardScreenPreview() {
     val test = List(50, init = { Group(groupId = it.toLong(), otherUsername = "abc") })
     ChatTheme {
         DashboardScreen(
+            snackbarHostState = SnackbarHostState(),
             state = DashboardState(
                 username = "Example name",
                 groups = test

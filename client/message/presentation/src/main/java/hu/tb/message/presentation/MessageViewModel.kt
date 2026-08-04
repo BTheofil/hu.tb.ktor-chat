@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 class MessageViewModel(
     val groupId: Long,
     val otherUserName: String,
+    val hasOtherUserLeft: Boolean,
     private val messageRepository: MessageRepository,
     private val userDataStore: UserDatastoreRepository
 ) : ViewModel() {
@@ -28,19 +29,24 @@ class MessageViewModel(
             _state.update {
                 it.copy(
                     userId = userId,
-                    otherUserName = otherUserName
+                    otherUserName = otherUserName,
+                    isChatClosed = hasOtherUserLeft
                 )
             }
 
             getMessageHistory()
-            connectGroup()
+            if (!hasOtherUserLeft) {
+                connectGroup()
+            }
         }
     }
 
     fun action(action: MessageAction) =
         when (action) {
-            MessageAction.DeleteMessage -> TODO()
             MessageAction.SendMessage -> sendMessage()
+            is MessageAction.LongPressMessage -> showDeleteDialog(action.messageId)
+            MessageAction.ConfirmDeleteMessage -> deleteMessage()
+            MessageAction.DismissDialog -> dismissDialog()
             else -> {}
         }
 
@@ -72,4 +78,29 @@ class MessageViewModel(
         _state.value.currentMessageState.clearText()
     }
 
+    private fun showDeleteDialog(messageId: Long) {
+        _state.update { it.copy(messageIdPendingDelete = messageId) }
+    }
+
+    private fun dismissDialog() {
+        _state.update { it.copy(messageIdPendingDelete = null) }
+    }
+
+    private fun deleteMessage() {
+        val messageId = state.value.messageIdPendingDelete ?: return
+        viewModelScope.launch {
+            val isDeleted = messageRepository.deleteMessage(messageId)
+            _state.update { currentState ->
+                currentState.copy(
+                    // The server does not broadcast deletions, so drop it locally.
+                    messages = if (isDeleted) {
+                        currentState.messages.filterNot { it.id == messageId }
+                    } else {
+                        currentState.messages
+                    },
+                    messageIdPendingDelete = null
+                )
+            }
+        }
+    }
 }

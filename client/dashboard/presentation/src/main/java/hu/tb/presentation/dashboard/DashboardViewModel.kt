@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.GroupResult
 import hu.tb.network.dashboard.DashboardRepository
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -19,16 +21,14 @@ class DashboardViewModel(
     private val _state = MutableStateFlow(DashboardState())
     val state = _state.asStateFlow()
 
+    private val _event = Channel<DashboardEvent>()
+    val event = _event.receiveAsFlow()
+
     init {
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
-            val groups = dashboardRepository.getUserFriends(userId = userData.id)
-            _state.update {
-                it.copy(
-                    username = userData.name,
-                    groups = groups ?: emptyList()
-                )
-            }
+            _state.update { it.copy(username = userData.name) }
+            loadGroups(userId = userData.id)
         }
     }
 
@@ -36,8 +36,16 @@ class DashboardViewModel(
         when (action) {
             DashboardAction.Search -> searchForFriend()
             is DashboardAction.MakeFriend -> makeFriend(action.otherUserId)
+            is DashboardAction.LongPressGroup -> showLeaveDialog(action.groupId)
+            DashboardAction.ConfirmLeaveGroup -> leaveGroup()
+            DashboardAction.DismissDialog -> dismissDialog()
             else -> return
         }
+    }
+
+    private suspend fun loadGroups(userId: Long) {
+        val groups = dashboardRepository.getUserFriends(userId = userId)
+        _state.update { it.copy(groups = groups ?: emptyList()) }
     }
 
     private fun searchForFriend() {
@@ -49,14 +57,17 @@ class DashboardViewModel(
                 currentUserGroupIds = state.value.groups.map { it.groupId },
                 searchName = state.value.searchText.text.toString()
             )
-            if (!users.isNullOrEmpty()) {
-                _state.update {
-                    it.copy(
-                        searchResults = users
-                    )
-                }
+            // Always replace the results, otherwise a failed or empty search leaves
+            // the previous list on screen and stale rows stay tappable.
+            _state.update {
+                it.copy(
+                    searchResults = users ?: emptyList(),
+                    isSearching = false
+                )
             }
-            _state.update { it.copy(isSearching = false) }
+            if (users == null) {
+                _event.send(DashboardEvent.SearchFailed)
+            }
         }
     }
 
@@ -68,8 +79,31 @@ class DashboardViewModel(
                 otherUserId = otherUserId
             )
             if (result == GroupResult.CREATED) {
-                val groups = dashboardRepository.getUserFriends(userId = userId)
-                _state.update { it.copy(groups = groups ?: emptyList()) }
+                loadGroups(userId = userId)
+            } else {
+                _event.send(DashboardEvent.AddFriendFailed)
+            }
+        }
+    }
+
+    private fun showLeaveDialog(groupId: Long) {
+        _state.update { it.copy(groupIdPendingLeave = groupId) }
+    }
+
+    private fun dismissDialog() {
+        _state.update { it.copy(groupIdPendingLeave = null) }
+    }
+
+    private fun leaveGroup() {
+        val groupId = state.value.groupIdPendingLeave ?: return
+        viewModelScope.launch {
+            val userId = userDatastoreRepository.userdataFlow().first().id
+            val isLeft = dashboardRepository.leaveGroup(userId = userId, groupId = groupId)
+            _state.update { it.copy(groupIdPendingLeave = null) }
+            if (isLeft) {
+                loadGroups(userId = userId)
+            } else {
+                _event.send(DashboardEvent.LeaveGroupFailed)
             }
         }
     }

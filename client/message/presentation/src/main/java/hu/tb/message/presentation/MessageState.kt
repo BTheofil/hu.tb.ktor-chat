@@ -9,5 +9,7 @@ data class MessageState(
     val userId: Long = -1,
     val otherUserName: String = "",
     val currentMessageState: TextFieldState = TextFieldState(),
-    val messages: List<Message> = emptyList()
+    val messages: List<Message> = emptyList(),
+    val isChatClosed: Boolean = false,
+    val messageIdPendingDelete: Long? = null
 )
