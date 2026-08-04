@@ -9,7 +9,7 @@ import org.jetbrains.exposed.v1.dao.LongEntityClass
 object GroupJunctionTable : Table() {
     val user = reference("user_id", UserTable)
     val group = reference("group_id", GroupTable)
-    override val primaryKey = PrimaryKey(user, name = "PK_Group_Junction_Table")
+    override val primaryKey = PrimaryKey(user, group, name = "PK_Group_Junction_Table")
 }
 
 object GroupTable : LongIdTable("groups") {

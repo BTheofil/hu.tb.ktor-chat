@@ -7,6 +7,7 @@ import hu.tb.domain.send.Message
 import hu.tb.domain.send.User
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.SizedCollection
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
@@ -61,9 +62,14 @@ class ChatRepository {
         val otherUserEntity = UserEntity.findById(otherUserId)
 
         if (currentUserEntity != null && otherUserEntity != null) {
-            val newGroup = GroupEntity.new { name = "$currentUserId-$otherUserId" }
-            newGroup.users = SizedCollection(listOf(currentUserEntity, otherUserEntity))
-            newGroup.toDomain()
+            val possibleNames = listOf("$currentUserId-$otherUserId", "$otherUserId-$currentUserId")
+            val existingGroup = GroupEntity
+                .find { GroupTable.name inList possibleNames }
+                .firstOrNull()
+
+            val group = existingGroup ?: GroupEntity.new { name = possibleNames.first() }
+            group.users = SizedCollection(listOf(currentUserEntity, otherUserEntity))
+            group.toDomain()
         } else null
     }
 
