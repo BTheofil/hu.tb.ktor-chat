@@ -6,7 +6,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,23 +31,26 @@ import androidx.compose.ui.unit.dp
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.ui.theme.ChatTheme
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MessageBubble(
     modifier: Modifier = Modifier,
     content: String,
     messageTimeSent: String,
+    onLongClick: (() -> Unit)? = null,
 ) {
     var isExpanded by remember { mutableStateOf(false) }
 
     Column {
         Card(
             modifier = modifier
-                .clickable(
+                .combinedClickable(
                     indication = null,
                     interactionSource = null,
                     onClick = {
                         isExpanded = !isExpanded
-                    }
+                    },
+                    onLongClick = onLongClick
                 ),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(

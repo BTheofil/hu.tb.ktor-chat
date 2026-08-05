@@ -2,15 +2,18 @@ package hu.tb.network.dashboard
 
 import hu.tb.domain.Group
 import hu.tb.domain.GroupResult
+import hu.tb.domain.GroupsResult
 import hu.tb.domain.UserMatch
 import hu.tb.network.dashboard.model.response.DecodedGroups
 import hu.tb.network.dashboard.model.response.UserDetail
 import hu.tb.network.dashboard.model.send.CreateGroupSend
 import hu.tb.network.dashboard.model.send.DecodeGroupSend
+import hu.tb.network.dashboard.model.send.GroupLeaveSend
 import hu.tb.network.dashboard.model.send.UserSearchByIdSend
 import hu.tb.network.dashboard.model.send.UserSearchByNameSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -20,12 +23,15 @@ import io.ktor.http.contentType
 class DashboardRepository(
     private val client: HttpClient
 ) {
-    suspend fun getUserFriends(userId: Long): List<Group>? {
+    suspend fun getUserFriends(userId: Long): GroupsResult {
         try {
             val userDetailsResponse = client.post("/searchUserById") {
                 contentType(ContentType.Application.Json)
                 setBody(UserSearchByIdSend(searchUserId = userId))
             }
+            // A missing user answers NotFound, and any server side exception answers
+            // BadRequest, both with a plain text body that body<UserDetail>() can not read.
+            if (userDetailsResponse.status != HttpStatusCode.OK) return GroupsResult.Failure
             val userDetails = userDetailsResponse.body<UserDetail>()
 
             userDetails.groupIds?.let { groupIds ->
@@ -33,18 +39,40 @@ class DashboardRepository(
                     contentType(ContentType.Application.Json)
                     setBody(DecodeGroupSend(userId = userId, groupIds = groupIds))
                 }
-                val allGroups = decodeResponse.body<List<DecodedGroups>>()
-                return allGroups.map {
+                // The server answers NotAcceptable with a plain text body when it can
+                // decode none of the ids, which happens when every group was left. Any
+                // other non OK status is a real failure: treating it as no decodable
+                // group would mark every chat of the user as closed.
+                val allGroups = when (decodeResponse.status) {
+                    HttpStatusCode.OK -> decodeResponse.body<List<DecodedGroups>>()
+                    HttpStatusCode.NotAcceptable -> emptyList()
+                    else -> return GroupsResult.Failure
+                }
+                val activeGroups = allGroups.map {
                     Group(
                         groupId = it.groupId,
                         otherUsername = it.otherUserName
                     )
                 }
+
+                // A group the user is still a member of but which the server did not
+                // decode has no other member left: the other user left the chat.
+                val abandonedGroups = (groupIds - activeGroups.map { it.groupId }.toSet())
+                    .map { groupId ->
+                        Group(
+                            groupId = groupId,
+                            otherUsername = "",
+                            hasOtherUserLeft = true
+                        )
+                    }
+
+                return GroupsResult.Success(groups = activeGroups + abandonedGroups)
             }
-            return null
+            // A null groupIds means the user is member of no group at all.
+            return GroupsResult.Success(groups = emptyList())
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
+            return GroupsResult.Failure
         }
     }
 
@@ -60,15 +88,14 @@ class DashboardRepository(
             }
             val searchedUsers =
                 searchUsersResponse.body<List<UserDetail>>().filter { it.id != currentUserId }
+            val currentUserGroupIdSet = currentUserGroupIds.toSet()
 
-            val isCurrentUserHasGroupWithSearched =
-                searchedUsers.mapNotNull { searchUser -> searchUser.groupIds?.any { groupId -> groupId in currentUserGroupIds } }
-
-            searchedUsers.mapIndexed { index, searchUser ->
+            searchedUsers.map { searchUser ->
                 UserMatch(
                     id = searchUser.id,
                     name = searchUser.name,
-                    isFriend = isCurrentUserHasGroupWithSearched.getOrNull(index) ?: false
+                    isFriend = searchUser.groupIds
+                        ?.any { groupId -> groupId in currentUserGroupIdSet } == true
                 )
             }
         } catch (e: Exception) {
@@ -88,5 +115,17 @@ class DashboardRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             return GroupResult.FAILED_TO_CREATE
+        }
+
+    suspend fun leaveGroup(userId: Long, groupId: Long): Boolean =
+        try {
+            val response = client.delete("/leaveGroup") {
+                contentType(ContentType.Application.Json)
+                setBody(GroupLeaveSend(leaveUserId = userId, targetGroupId = groupId))
+            }
+            response.status == HttpStatusCode.OK
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
 }

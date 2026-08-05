@@ -44,12 +44,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.message.domain.Message
 import hu.tb.message.presentation.components.MessageBubble
+import hu.tb.ui.component.ConfirmDialog
 import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
@@ -94,7 +96,8 @@ private fun MessageScreen(
             .fillMaxSize(),
         topBar = {
             MessageBar(
-                otherUserName = state.otherUserName,
+                title = if (state.isChatClosed) CLOSED_CHAT_TITLE
+                else "Chat with ${state.otherUserName}",
                 navigateBack = { action(MessageAction.NavigateBack) }
             )
         }
@@ -144,27 +147,57 @@ private fun MessageScreen(
                             val formattedMinute = if (message.timeStamp.minute < 10) "0${message.timeStamp.minute}" else message.timeStamp.minute
                             MessageBubble(
                                 content = message.content,
-                                messageTimeSent = "${message.timeStamp.hour}:$formattedMinute"
+                                messageTimeSent = "${message.timeStamp.hour}:$formattedMinute",
+                                onLongClick = if (isSelfMessage) {
+                                    { action(MessageAction.LongPressMessage(message.id)) }
+                                } else null
                             )
                         }
                     }
                 }
+                if (state.isChatClosed) {
+                    item {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            text = "The other user left the chat",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary.copy(alpha = .7f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
-            Spacer(Modifier.height(16.dp))
-            MessageControl(
-                textState = state.currentMessageState,
-                sendClick = { action(MessageAction.SendMessage) }
-            )
-            Spacer(Modifier.height(8.dp))
+            if (!state.isChatClosed) {
+                Spacer(Modifier.height(16.dp))
+                MessageControl(
+                    textState = state.currentMessageState,
+                    sendClick = { action(MessageAction.SendMessage) }
+                )
+                Spacer(Modifier.height(8.dp))
+            }
         }
     }
+
+    if (state.messageIdPendingDelete != null) {
+        ConfirmDialog(
+            title = "Delete message",
+            text = "This message will be deleted. Others may still see it until they reopen the chat.",
+            confirmLabel = "Delete",
+            onConfirm = { action(MessageAction.ConfirmDeleteMessage) },
+            onDismiss = { action(MessageAction.DismissDialog) }
+        )
+    }
 }
+
+private const val CLOSED_CHAT_TITLE = "Chat closed"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MessageBar(
     modifier: Modifier = Modifier,
-    otherUserName: String,
+    title: String,
     navigateBack: () -> Unit
 ) {
     var isBackEnabled by remember { mutableStateOf(true) }
@@ -174,7 +207,7 @@ private fun MessageBar(
             .fillMaxWidth(),
         title = {
             Text(
-                "Chat with $otherUserName",
+                title,
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -256,11 +289,13 @@ private fun MessageScreenPreview() {
                 otherUserName = "Other_user",
                 messages = listOf(
                     Message(
+                        id = 1,
                         senderId = 1,
                         content = "test message",
                         timeStamp = LocalDateTime.of(2026, 6, 22, 1, 0)
                     ),
                     Message(
+                        id = 2,
                         senderId = 2,
                         content = "other message",
                         timeStamp = LocalDateTime.of(2026, 6, 22, 1, 1)

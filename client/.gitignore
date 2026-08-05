@@ -16,3 +16,5 @@ local.properties
 /gradle/gradle-daemon-jvm.properties
 /.idea/
 /client-keystore
+/.kotlin/errors/*
+/app/release/*
