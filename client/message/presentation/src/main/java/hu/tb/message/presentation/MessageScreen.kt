@@ -116,7 +116,8 @@ private fun MessageScreen(
 
     Scaffold(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .imePadding(),
         topBar = {
             MessageBar(
                 title = if (state.isChatClosed) "Chat closed"
@@ -156,7 +157,8 @@ private fun MessageScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
+                                    .padding(horizontal = 16.dp)
+                                    .animateItem(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 HorizontalDivider(Modifier.weight(1f))
@@ -276,6 +278,13 @@ private fun ConnectionBar(
     connectionStatus: ConnectionStatus,
     retry: () -> Unit
 ) {
+    // Retrying flips the status to CONNECTING and this button only exists while DISCONNECTED, but
+    // composition catches up a frame later, so a second tap in the same frame would still reach
+    // this lambda and open a rival connection. Checked inside the lambda on purpose: an `enabled`
+    // flag would need that same missing recomposition to take effect.
+    var isRetryTapped by remember { mutableStateOf(false) }
+    LaunchedEffect(connectionStatus) { isRetryTapped = false }
+
     val containerColor = when (connectionStatus) {
         ConnectionStatus.DISCONNECTED -> MaterialTheme.colorScheme.errorContainer
         ConnectionStatus.CONNECTING -> MaterialTheme.colorScheme.secondaryContainer
@@ -306,7 +315,14 @@ private fun ConnectionBar(
                 color = contentColor
             )
             if (connectionStatus == ConnectionStatus.DISCONNECTED) {
-                TextButton(onClick = retry) {
+                TextButton(
+                    onClick = {
+                        if (!isRetryTapped) {
+                            isRetryTapped = true
+                            retry()
+                        }
+                    }
+                ) {
                     Text(
                         text = "Retry",
                         style = MaterialTheme.typography.labelLarge,
@@ -333,8 +349,7 @@ private fun MessageControl(
         Card(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight()
-                .imePadding(),
+                .fillMaxHeight(),
             shape = RoundedCornerShape(16.dp)
         ) {
             BasicTextField(

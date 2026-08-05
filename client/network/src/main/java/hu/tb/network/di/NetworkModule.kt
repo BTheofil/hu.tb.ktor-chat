@@ -20,6 +20,11 @@ import kotlin.time.Duration.Companion.seconds
 val networkModule = module {
     single<HttpClient> {
         HttpClient(OkHttp) {
+            engine {
+                config {
+                    pingInterval(15.seconds)
+                }
+            }
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true
@@ -30,9 +35,6 @@ val networkModule = module {
             install(Auth) {}
             install(WebSockets) {
                 contentConverter = KotlinxWebsocketSerializationConverter(Json)
-                // Makes a dropped connection surface as a failed socket instead of a flow that
-                // hangs forever, which is what lets the chat screen report it.
-                pingIntervalMillis = 15.seconds.inWholeMilliseconds
             }
             defaultRequest {
                 url("http://[2a01:4f9:c014:f7e9::1]:8080")
