@@ -132,14 +132,10 @@ private fun MessageScreen(
             modifier = Modifier
                 .padding(innerPadding)
         ) {
-            // A closed chat has no socket to report on, its own notice is shown in the list.
-            // The bar animates itself, isChatClosed can not change while the screen is open.
-            if (!state.isChatClosed) {
-                ConnectionBar(
-                    connectionStatus = state.connectionStatus,
-                    retry = { action(MessageAction.Retry) }
-                )
-            }
+            ConnectionBar(
+                connectionStatus = state.connectionStatus,
+                retry = { action(MessageAction.Retry) }
+            )
         }
         Column(
             modifier = Modifier
