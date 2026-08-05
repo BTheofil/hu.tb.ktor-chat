@@ -15,10 +15,16 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
+import kotlin.time.Duration.Companion.seconds
 
 val networkModule = module {
     single<HttpClient> {
         HttpClient(OkHttp) {
+            engine {
+                config {
+                    pingInterval(15.seconds)
+                }
+            }
             install(ContentNegotiation) {
                 json(Json {
                     ignoreUnknownKeys = true

@@ -3,11 +3,11 @@ plugins {
     kotlin("jvm") version "2.3.20"
     kotlin("plugin.serialization") version "2.3.20"
     id("io.ktor.plugin") version "3.4.2"
-    id("com.google.cloud.tools.jib") version "3.5.3"
+    id("com.google.cloud.tools.jib") version "3.5.4"
 }
 
 group = "hu.tb"
-version = "1.1.4"
+version = "1.1.5"
 
 application {
     mainClass.set("io.ktor.server.netty.EngineMain")

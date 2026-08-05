@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hu.tb.message.presentation.MessageScreen
 import hu.tb.message.presentation.MessageViewModel
@@ -35,6 +37,13 @@ fun Navigator(
 
     NavDisplay(
         backStack = backStack,
+        // Without a ViewModelStore decorator every screen resolves its ViewModel against the
+        // activity, so a popped entry never clears its ViewModel and a second chat would reuse
+        // the first one. The saveable state holder is the framework default and must be kept.
+        entryDecorators = listOf(
+            rememberSaveableStateHolderNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator()
+        ),
         entryProvider = entryProvider {
             entry<Destination.Auth> {
                 AuthScreen(
