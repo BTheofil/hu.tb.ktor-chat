@@ -1,5 +1,10 @@
 package hu.tb.message.presentation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,7 +36,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,6 +57,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
+import hu.tb.message.domain.ConnectionStatus
 import hu.tb.message.domain.Message
 import hu.tb.message.presentation.components.MessageBubble
 import hu.tb.ui.component.ConfirmDialog
@@ -63,7 +72,20 @@ fun MessageScreen(
     viewModel: MessageViewModel,
     navigationRequest: () -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.event.collect { event ->
+            val message = when (event) {
+                MessageEvent.SendMessageFailed -> "Message not sent, you are offline."
+                MessageEvent.DeleteMessageFailed -> "Could not delete the message, try again."
+            }
+            snackbarHostState.showSnackbar(message = message)
+        }
+    }
+
     MessageScreen(
+        snackbarHostState = snackbarHostState,
         state = viewModel.state.collectAsStateWithLifecycle().value,
         action = {
             when (it) {
@@ -77,6 +99,7 @@ fun MessageScreen(
 @TraceRecomposition
 @Composable
 private fun MessageScreen(
+    snackbarHostState: SnackbarHostState,
     state: MessageState,
     action: (MessageAction) -> Unit
 ) {
@@ -96,12 +119,28 @@ private fun MessageScreen(
             .fillMaxSize(),
         topBar = {
             MessageBar(
-                title = if (state.isChatClosed) CLOSED_CHAT_TITLE
+                title = if (state.isChatClosed) "Chat closed"
                 else "Chat with ${state.otherUserName}",
                 navigateBack = { action(MessageAction.NavigateBack) }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+        ) {
+            // A closed chat has no socket to report on, its own notice is shown in the list.
+            // The bar animates itself, isChatClosed can not change while the screen is open.
+            if (!state.isChatClosed) {
+                ConnectionBar(
+                    connectionStatus = state.connectionStatus,
+                    retry = { action(MessageAction.Retry) }
+                )
+            }
+        }
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -119,7 +158,8 @@ private fun MessageScreen(
                     item(
                         content = {
                             Row(
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier
+                                    .fillMaxWidth()
                                     .padding(horizontal = 16.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -144,7 +184,8 @@ private fun MessageScreen(
                                 .animateItem(),
                             contentAlignment = if (isSelfMessage) Alignment.CenterEnd else Alignment.CenterStart
                         ) {
-                            val formattedMinute = if (message.timeStamp.minute < 10) "0${message.timeStamp.minute}" else message.timeStamp.minute
+                            val formattedMinute =
+                                if (message.timeStamp.minute < 10) "0${message.timeStamp.minute}" else message.timeStamp.minute
                             MessageBubble(
                                 content = message.content,
                                 messageTimeSent = "${message.timeStamp.hour}:$formattedMinute",
@@ -173,6 +214,7 @@ private fun MessageScreen(
                 Spacer(Modifier.height(16.dp))
                 MessageControl(
                     textState = state.currentMessageState,
+                    isSendEnabled = state.canSendMessage,
                     sendClick = { action(MessageAction.SendMessage) }
                 )
                 Spacer(Modifier.height(8.dp))
@@ -190,8 +232,6 @@ private fun MessageScreen(
         )
     }
 }
-
-private const val CLOSED_CHAT_TITLE = "Chat closed"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -234,9 +274,58 @@ private fun MessageBar(
     )
 }
 
+@TraceRecomposition
+@Composable
+private fun ConnectionBar(
+    connectionStatus: ConnectionStatus,
+    retry: () -> Unit
+) {
+    val containerColor = when (connectionStatus) {
+        ConnectionStatus.DISCONNECTED -> MaterialTheme.colorScheme.errorContainer
+        ConnectionStatus.CONNECTING -> MaterialTheme.colorScheme.secondaryContainer
+        ConnectionStatus.CONNECTED -> MaterialTheme.colorScheme.tertiaryContainer
+    }
+    val contentColor = when (connectionStatus) {
+        ConnectionStatus.DISCONNECTED -> MaterialTheme.colorScheme.onErrorContainer
+        ConnectionStatus.CONNECTING -> MaterialTheme.colorScheme.onSecondaryContainer
+        ConnectionStatus.CONNECTED -> MaterialTheme.colorScheme.onTertiaryContainer
+    }
+
+    AnimatedVisibility(
+        visible = connectionStatus != ConnectionStatus.CONNECTED,
+        enter = fadeIn(),
+        exit = fadeOut(tween(durationMillis = 1000, easing = LinearEasing))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = containerColor)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                modifier = Modifier.weight(1f),
+                text = connectionStatus.label,
+                style = MaterialTheme.typography.labelLarge,
+                color = contentColor
+            )
+            if (connectionStatus == ConnectionStatus.DISCONNECTED) {
+                TextButton(onClick = retry) {
+                    Text(
+                        text = "Retry",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun MessageControl(
     textState: TextFieldState,
+    isSendEnabled: Boolean,
     sendClick: () -> Unit
 ) {
     Row(
@@ -257,14 +346,18 @@ private fun MessageControl(
                     .fillMaxSize()
                     .padding(vertical = 8.dp, horizontal = 10.dp),
                 state = textState,
+                enabled = isSendEnabled
             )
         }
         Spacer(Modifier.width(16.dp))
         Box(
             modifier = Modifier
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colorScheme.primary)
-                .clickable(onClick = sendClick),
+                .background(
+                    color = if (isSendEnabled) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.surfaceVariant
+                )
+                .clickable(enabled = isSendEnabled, onClick = sendClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -273,7 +366,8 @@ private fun MessageControl(
                     .size(22.dp),
                 painter = painterResource(Icon.send),
                 contentDescription = "send icon",
-                tint = MaterialTheme.colorScheme.onPrimary
+                tint = if (isSendEnabled) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -284,9 +378,11 @@ private fun MessageControl(
 private fun MessageScreenPreview() {
     ChatTheme {
         MessageScreen(
+            snackbarHostState = remember { SnackbarHostState() },
             state = MessageState(
                 userId = 2,
                 otherUserName = "Other_user",
+                connectionStatus = ConnectionStatus.CONNECTED,
                 messages = listOf(
                     Message(
                         id = 1,

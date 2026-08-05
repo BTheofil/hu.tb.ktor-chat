@@ -33,12 +33,33 @@ class ProfileViewModel(
 
     fun action(action: ProfileAction) {
         when (action) {
-            ProfileAction.DeleteUserClick -> deleteUser()
+            ProfileAction.DeleteUserClick -> showDeleteDialog()
+            ProfileAction.ConfirmDeleteUser -> deleteUser()
+            ProfileAction.DismissDialog -> dismissDialog()
+            ProfileAction.LogoutClick -> logout()
             ProfileAction.CloseClick -> Unit
         }
     }
 
+    private fun showDeleteDialog() {
+        _state.update { it.copy(isDeleteDialogVisible = true) }
+    }
+
+    private fun dismissDialog() {
+        _state.update { it.copy(isDeleteDialogVisible = false) }
+    }
+
+    private fun logout() {
+        viewModelScope.launch {
+            // Resets every stored field, so the next start finds no token and lands on auth.
+            userDatastoreRepository.clearUserData()
+            _event.send(ProfileEvent.LoggedOut)
+        }
+    }
+
     private fun deleteUser() {
+        // Close the dialog before the request starts, so a second tap can not delete twice.
+        _state.update { it.copy(isDeleteDialogVisible = false) }
         viewModelScope.launch {
             val userId = userDatastoreRepository.userdataFlow().first().id
             val result = profileRepository.deleteProfile(userId)

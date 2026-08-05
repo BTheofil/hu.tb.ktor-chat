@@ -2,7 +2,6 @@ package hu.tb.presentation.dashboard
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,11 +13,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material3.Card
@@ -53,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.domain.Group
 import hu.tb.ui.component.ConfirmDialog
+import hu.tb.ui.component.InitialAvatar
 import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
@@ -197,7 +195,7 @@ private fun DashboardScreen(
                                     ),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ProfileBubble(
+                                InitialAvatar(
                                     firstLetter = group.otherUsername.firstOrNull()?.toString()
                                         ?: CLOSED_CHAT_INITIAL
                                 )
@@ -355,29 +353,6 @@ fun SearchWidget(
             }
         }
     )
-}
-
-@TraceRecomposition
-@Composable
-private fun ProfileBubble(
-    modifier: Modifier = Modifier,
-    firstLetter: String
-) {
-    Box(
-        modifier = modifier
-            .size(28.dp)
-            .background(
-                color = MaterialTheme.colorScheme.tertiaryContainer,
-                shape = CircleShape
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = firstLetter,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onTertiaryContainer
-        )
-    }
 }
 
 @Preview

@@ -6,4 +6,5 @@ sealed interface MessageAction {
     data object ConfirmDeleteMessage : MessageAction
     data object DismissDialog : MessageAction
     data object NavigateBack : MessageAction
+    data object Retry : MessageAction
 }

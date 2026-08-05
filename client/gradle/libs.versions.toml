@@ -1,18 +1,19 @@
 [versions]
-agp = "9.2.1"
-androidTools = "32.2.1"
+agp = "9.3.1"
+androidTools = "32.3.1"
 coreSplashscreen = "1.2.0"
-kotlin = "2.4.0"
-composeBom = "2026.05.01"
+kotlin = "2.4.10"
+composeBom = "2026.06.01"
 #ksp = "2.3.4"
 koin = "4.2.2"
-uiTextGoogleFonts = "1.11.2"
-ktor = "3.5.0"
+uiTextGoogleFonts = "1.11.4"
+ktor = "3.5.2"
 datastoreVersion = "1.2.1"
 kotlinxSerJson = "1.11.0"
-kotlinxSerJsonPlugin = "2.4.0"
-nav3Core = "1.1.2"
-composeAnalyzer = "0.10.0"
+kotlinxSerJsonPlugin = "2.4.10"
+nav3Core = "1.1.5"
+lifecycleNav3 = "2.11.0"
+composeAnalyzer = "0.12.0"
 
 #Project settings
 minSdk = "26"
@@ -28,6 +29,7 @@ androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" } #used in build-logic/AndroidLibComposeConventionPlugin.kt
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleNav3" }
 koin = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
@@ -70,5 +72,6 @@ datastore = [
     "datastore", "kotlinx-serialization-json"
 ]
 nav3 = [
-    "androidx-navigation3-runtime", "androidx-navigation3-ui"
+    "androidx-navigation3-runtime", "androidx-navigation3-ui",
+    "androidx-lifecycle-viewmodel-navigation3"
 ]

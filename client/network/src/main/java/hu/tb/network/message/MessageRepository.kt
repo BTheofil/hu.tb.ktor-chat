@@ -17,15 +17,10 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.websocket.Frame
-import io.ktor.websocket.WebSocketSession
-import io.ktor.websocket.readText
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.serialization.json.Json
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -34,7 +29,9 @@ class MessageRepository(
     private val client: HttpClient,
     private val userDatastore: UserDatastoreRepository
 ) {
-    private var session: WebSocketSession? = null
+    // Outlives any single screen so a socket can still be closed gracefully while the owning
+    // ViewModel is being destroyed.
+    private val closeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     suspend fun getMessageHistory(groupId: Int, page: Int = 0): List<Message>? =
         try {
@@ -60,10 +57,14 @@ class MessageRepository(
             return null
         }
 
-    suspend fun connectGroupObserver(groupId: Long): Flow<Message>? =
+    /**
+     * Opens a socket for one chat. Returns null when the connection can not be established, for
+     * example a refused handshake, an expired token or an unreachable server.
+     */
+    suspend fun openChatConnection(groupId: Long): ChatConnection? =
         try {
             val token = userDatastore.userdataFlow().first().token
-            session = client.webSocketSession(
+            val session = client.webSocketSession(
                 port = 8080,
                 path = "/groupConnect",
                 block = {
@@ -72,33 +73,10 @@ class MessageRepository(
                 }
             )
 
-            return session?.incoming
-                ?.consumeAsFlow()
-                ?.filterIsInstance<Frame.Text>()
-                ?.map {
-                    val messageDto = Json.decodeFromString<MessageResponse>(it.readText())
-                    with(messageDto) {
-                        Message(
-                            id = this.id,
-                            senderId = this.senderId,
-                            content = this.content,
-                            timeStamp = LocalDateTime.ofInstant(
-                                Instant.ofEpochMilli(this.timestamp),
-                                ZoneId.systemDefault()
-                            )
-                        )
-                    }
-                }
+            ChatConnection(session = session, closeScope = closeScope)
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
-        }
-
-    suspend fun sendMessage(message: String) =
-        try {
-            session?.send(Frame.Text(message))
-        } catch (e: Exception) {
-            e.printStackTrace()
+            null
         }
 
     suspend fun deleteMessage(messageId: Long): Boolean =
