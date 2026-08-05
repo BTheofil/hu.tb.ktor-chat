@@ -73,6 +73,7 @@ fun DashboardScreen(
             val message = when (event) {
                 DashboardEvent.AddFriendFailed -> "Could not add friend, try again."
                 DashboardEvent.LeaveGroupFailed -> "Could not leave the chat, try again."
+                DashboardEvent.LoadGroupsFailed -> "Could not refresh your chats, check your connection."
                 DashboardEvent.SearchFailed -> "Search failed, check your connection."
             }
             snackbarHostState.showSnackbar(message = message)

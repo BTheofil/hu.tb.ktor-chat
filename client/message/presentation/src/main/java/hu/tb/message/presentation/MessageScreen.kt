@@ -183,7 +183,7 @@ private fun MessageScreen(
     if (state.messageIdPendingDelete != null) {
         ConfirmDialog(
             title = "Delete message",
-            text = "This message will be removed for everyone in the chat.",
+            text = "This message will be deleted. Others may still see it until they reopen the chat.",
             confirmLabel = "Delete",
             onConfirm = { action(MessageAction.ConfirmDeleteMessage) },
             onDismiss = { action(MessageAction.DismissDialog) }

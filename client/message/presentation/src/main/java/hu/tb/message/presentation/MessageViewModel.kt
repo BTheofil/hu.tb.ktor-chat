@@ -88,18 +88,20 @@ class MessageViewModel(
 
     private fun deleteMessage() {
         val messageId = state.value.messageIdPendingDelete ?: return
+        // Clear the pending id before the request starts, otherwise two quick taps on the
+        // confirm button both pass the check above and send the delete twice.
+        _state.update { it.copy(messageIdPendingDelete = null) }
         viewModelScope.launch {
             val isDeleted = messageRepository.deleteMessage(messageId)
-            _state.update { currentState ->
-                currentState.copy(
-                    // The server does not broadcast deletions, so drop it locally.
-                    messages = if (isDeleted) {
-                        currentState.messages.filterNot { it.id == messageId }
-                    } else {
-                        currentState.messages
-                    },
-                    messageIdPendingDelete = null
-                )
+            if (isDeleted) {
+                // The delete is permanent on the server, but deletions are deliberately
+                // not broadcast over the socket, so only this client drops the message.
+                // Other members stop seeing it once they load the history again.
+                _state.update { currentState ->
+                    currentState.copy(
+                        messages = currentState.messages.filterNot { it.id == messageId }
+                    )
+                }
             }
         }
     }

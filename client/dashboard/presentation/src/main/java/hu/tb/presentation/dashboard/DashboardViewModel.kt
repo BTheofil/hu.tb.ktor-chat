@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.GroupResult
+import hu.tb.domain.GroupsResult
 import hu.tb.network.dashboard.DashboardRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,8 +45,12 @@ class DashboardViewModel(
     }
 
     private suspend fun loadGroups(userId: Long) {
-        val groups = dashboardRepository.getUserFriends(userId = userId)
-        _state.update { it.copy(groups = groups ?: emptyList()) }
+        // Only a successful load may replace the list. A failed load keeps the groups
+        // already on screen, otherwise a network error empties the dashboard.
+        when (val result = dashboardRepository.getUserFriends(userId = userId)) {
+            is GroupsResult.Success -> _state.update { it.copy(groups = result.groups) }
+            GroupsResult.Failure -> _event.send(DashboardEvent.LoadGroupsFailed)
+        }
     }
 
     private fun searchForFriend() {
@@ -96,10 +101,12 @@ class DashboardViewModel(
 
     private fun leaveGroup() {
         val groupId = state.value.groupIdPendingLeave ?: return
+        // Clear the pending id before the request starts, otherwise two quick taps on the
+        // confirm button both pass the check above and leave the same group twice.
+        _state.update { it.copy(groupIdPendingLeave = null) }
         viewModelScope.launch {
             val userId = userDatastoreRepository.userdataFlow().first().id
             val isLeft = dashboardRepository.leaveGroup(userId = userId, groupId = groupId)
-            _state.update { it.copy(groupIdPendingLeave = null) }
             if (isLeft) {
                 loadGroups(userId = userId)
             } else {

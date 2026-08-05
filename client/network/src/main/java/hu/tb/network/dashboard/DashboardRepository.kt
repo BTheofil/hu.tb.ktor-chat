@@ -2,6 +2,7 @@ package hu.tb.network.dashboard
 
 import hu.tb.domain.Group
 import hu.tb.domain.GroupResult
+import hu.tb.domain.GroupsResult
 import hu.tb.domain.UserMatch
 import hu.tb.network.dashboard.model.response.DecodedGroups
 import hu.tb.network.dashboard.model.response.UserDetail
@@ -22,7 +23,7 @@ import io.ktor.http.contentType
 class DashboardRepository(
     private val client: HttpClient
 ) {
-    suspend fun getUserFriends(userId: Long): List<Group>? {
+    suspend fun getUserFriends(userId: Long): GroupsResult {
         try {
             val userDetailsResponse = client.post("/searchUserById") {
                 contentType(ContentType.Application.Json)
@@ -30,7 +31,7 @@ class DashboardRepository(
             }
             // A missing user answers NotFound, and any server side exception answers
             // BadRequest, both with a plain text body that body<UserDetail>() can not read.
-            if (userDetailsResponse.status != HttpStatusCode.OK) return null
+            if (userDetailsResponse.status != HttpStatusCode.OK) return GroupsResult.Failure
             val userDetails = userDetailsResponse.body<UserDetail>()
 
             userDetails.groupIds?.let { groupIds ->
@@ -39,11 +40,13 @@ class DashboardRepository(
                     setBody(DecodeGroupSend(userId = userId, groupIds = groupIds))
                 }
                 // The server answers NotAcceptable with a plain text body when it can
-                // decode none of the ids, which happens when every group was left.
-                val allGroups = if (decodeResponse.status == HttpStatusCode.OK) {
-                    decodeResponse.body<List<DecodedGroups>>()
-                } else {
-                    emptyList()
+                // decode none of the ids, which happens when every group was left. Any
+                // other non OK status is a real failure: treating it as no decodable
+                // group would mark every chat of the user as closed.
+                val allGroups = when (decodeResponse.status) {
+                    HttpStatusCode.OK -> decodeResponse.body<List<DecodedGroups>>()
+                    HttpStatusCode.NotAcceptable -> emptyList()
+                    else -> return GroupsResult.Failure
                 }
                 val activeGroups = allGroups.map {
                     Group(
@@ -63,12 +66,13 @@ class DashboardRepository(
                         )
                     }
 
-                return activeGroups + abandonedGroups
+                return GroupsResult.Success(groups = activeGroups + abandonedGroups)
             }
-            return null
+            // A null groupIds means the user is member of no group at all.
+            return GroupsResult.Success(groups = emptyList())
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
+            return GroupsResult.Failure
         }
     }
 
