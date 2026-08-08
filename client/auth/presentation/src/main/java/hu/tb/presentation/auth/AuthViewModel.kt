@@ -58,7 +58,7 @@ class AuthViewModel(
             val userInfo = authRepository.handleLogin(loginInfo)
 
             if (userInfo == null) {
-                _state.update { it.copy(isLoginHasError = true) }
+                _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
                 return@launch
             }
 
