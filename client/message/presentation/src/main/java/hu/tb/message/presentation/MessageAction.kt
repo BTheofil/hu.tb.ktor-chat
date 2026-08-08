@@ -7,4 +7,5 @@ sealed interface MessageAction {
     data object DismissDialog : MessageAction
     data object NavigateBack : MessageAction
     data object Retry : MessageAction
+    data object LoadOlderMessages : MessageAction
 }

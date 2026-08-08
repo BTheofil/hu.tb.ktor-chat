@@ -13,7 +13,10 @@ data class MessageState(
     val messages: List<Message> = emptyList(),
     val isChatClosed: Boolean = false,
     val messageIdPendingDelete: Long? = null,
-    val connectionStatus: ConnectionStatus = ConnectionStatus.CONNECTING
+    val connectionStatus: ConnectionStatus = ConnectionStatus.CONNECTING,
+    val isLoadingOlder: Boolean = false,
+    // Assumed true until a page proves otherwise, so the first load is never skipped.
+    val hasMoreHistory: Boolean = true
 ) {
     // A closed chat has no socket by design, so only a live chat can be blocked by the connection.
     val canSendMessage: Boolean

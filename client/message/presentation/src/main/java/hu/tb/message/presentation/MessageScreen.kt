@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -47,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,8 +66,16 @@ import hu.tb.ui.component.ConfirmDialog
 import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+
+// Loading the next page this early keeps the spinner ahead of the scroll instead of stalling
+// the user at the very top of the list.
+private const val OLDER_MESSAGES_TRIGGER_INDEX = 2
+private const val LOADING_OLDER_ITEM_KEY = "loading_older"
+private const val CHAT_CLOSED_ITEM_KEY = "chat_closed"
 
 @Composable
 fun MessageScreen(
@@ -104,14 +114,39 @@ private fun MessageScreen(
     action: (MessageAction) -> Unit
 ) {
     val listState = rememberLazyListState()
-    val groupedMessages = remember(state.messages.size) {
+    val groupedMessages = remember(state.messages) {
         state.messages.groupBy { it.timeStamp.toLocalDate() }
     }
 
-    LaunchedEffect(state.messages.size) {
+    // Every row the LazyColumn emits, not just the messages. A message index alone lands short
+    // by one row per day separator. Derived from the data rather than read from layoutInfo,
+    // which still reports the previous measure when this effect runs.
+    val totalItemCount = (if (state.isLoadingOlder) 1 else 0) +
+            groupedMessages.size +
+            state.messages.size +
+            (if (state.isChatClosed) 1 else 0)
+
+    // Keyed on the newest message rather than the list size, so arriving and sent messages jump
+    // to the bottom but a page of older messages prepended above does not.
+    LaunchedEffect(state.messages.lastOrNull()?.id) {
         if (state.messages.isNotEmpty()) {
-            listState.animateScrollToItem(state.messages.lastIndex)
+            listState.animateScrollToItem(totalItemCount - 1)
         }
+    }
+
+    // Restarted after every load so the current scroll position is re-checked. Without that, a
+    // conversation that fits on one screen never moves off index 0 and could never ask for a
+    // second page. Prepending a page pushes the anchored row down the list, which moves the index
+    // past the trigger and ends the loop.
+    LaunchedEffect(listState, state.isLoadingOlder, state.hasMoreHistory) {
+        if (state.isLoadingOlder || !state.hasMoreHistory) return@LaunchedEffect
+
+        snapshotFlow { listState.firstVisibleItemIndex }
+            .distinctUntilChanged()
+            .filter { it <= OLDER_MESSAGES_TRIGGER_INDEX }
+            .collect {
+                action(MessageAction.LoadOlderMessages)
+            }
     }
 
     Scaffold(
@@ -151,8 +186,30 @@ private fun MessageScreen(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.Bottom),
             ) {
+                if (state.isLoadingOlder) {
+                    item(
+                        key = LOADING_OLDER_ITEM_KEY,
+                        content = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
+                        }
+                    )
+                }
                 groupedMessages.forEach { (date, messages) ->
                     item(
+                        // Keys let the list re-anchor on the row the user is looking at when an
+                        // older page is prepended, instead of jumping.
+                        key = date,
                         content = {
                             Row(
                                 modifier = Modifier
@@ -174,6 +231,7 @@ private fun MessageScreen(
                     )
                     items(
                         items = messages,
+                        key = { it.id }
                     ) { message ->
                         val isSelfMessage = state.userId == message.senderId
                         Box(
@@ -195,7 +253,7 @@ private fun MessageScreen(
                     }
                 }
                 if (state.isChatClosed) {
-                    item {
+                    item(key = CHAT_CLOSED_ITEM_KEY) {
                         Text(
                             modifier = Modifier
                                 .fillMaxWidth()

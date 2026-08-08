@@ -35,6 +35,9 @@ class MessageViewModel(
     private var connection: ChatConnection? = null
     private var connectionJob: Job? = null
 
+    // Page 0 is the newest page, and each further page reaches further back in time.
+    private var nextHistoryPage = 0
+
     init {
         viewModelScope.launch {
             val userId = userDataStore.userdataFlow().first().id
@@ -49,7 +52,7 @@ class MessageViewModel(
                 )
             }
 
-            getMessageHistory()
+            loadNextHistoryPage()
             if (!hasOtherUserLeft) {
                 connect()
             }
@@ -69,6 +72,7 @@ class MessageViewModel(
             MessageAction.ConfirmDeleteMessage -> deleteMessage()
             MessageAction.DismissDialog -> dismissDialog()
             MessageAction.Retry -> retry()
+            MessageAction.LoadOlderMessages ->  viewModelScope.launch { loadNextHistoryPage() }
             else -> {}
         }
 
@@ -124,14 +128,36 @@ class MessageViewModel(
         connection = null
     }
 
-    private suspend fun getMessageHistory() {
-        val messages = messageRepository.getMessageHistory(groupId.toInt())
-        if (messages != null) {
-            _state.update {
-                it.copy(
-                    messages = messages
-                )
-            }
+    private suspend fun loadNextHistoryPage() {
+        val currentState = state.value
+        if (currentState.isLoadingOlder || !currentState.hasMoreHistory) return
+        // Claimed before the request starts so the scroll listener firing on consecutive frames
+        // can not put the same page in flight twice.
+        _state.update { it.copy(isLoadingOlder = true) }
+
+        val page = messageRepository.getMessageHistory(
+            groupId = groupId.toInt(),
+            page = nextHistoryPage
+        )
+
+        if (page == null) {
+            // A failed page keeps hasMoreHistory untouched, so scrolling up again retries
+            // instead of pretending the conversation starts here.
+            _state.update { it.copy(isLoadingOlder = false) }
+            return
+        }
+
+        nextHistoryPage++
+        _state.update { latestState ->
+            // Deleting a message shifts every later offset by one, so a page can repeat a
+            // message that is already on screen.
+            val knownIds = latestState.messages.mapTo(mutableSetOf()) { it.id }
+            val olderMessages = page.messages.filterNot { knownIds.contains(it.id) }
+            latestState.copy(
+                messages = olderMessages + latestState.messages,
+                hasMoreHistory = page.hasMore,
+                isLoadingOlder = false
+            )
         }
     }
 
