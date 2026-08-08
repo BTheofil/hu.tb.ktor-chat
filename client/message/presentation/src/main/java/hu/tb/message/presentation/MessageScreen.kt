@@ -67,6 +67,7 @@ import hu.tb.ui.modifier.clearFocus
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -138,11 +139,20 @@ private fun MessageScreen(
     // conversation that fits on one screen never moves off index 0 and could never ask for a
     // second page. Prepending a page pushes the anchored row down the list, which moves the index
     // past the trigger and ends the loop.
-    LaunchedEffect(listState, state.isLoadingOlder, state.hasMoreHistory) {
+    LaunchedEffect(
+        listState,
+        state.isLoadingOlder,
+        state.hasMoreHistory,
+        state.hasHistoryLoadFailed
+    ) {
         if (state.isLoadingOlder || !state.hasMoreHistory) return@LaunchedEffect
 
         snapshotFlow { listState.firstVisibleItemIndex }
             .distinctUntilChanged()
+            // snapshotFlow replays the current index as soon as it is collected. After a failure
+            // that replay is the position which just failed, so dropping it ends the retry loop
+            // while a later scroll into the trigger zone still tries again.
+            .let { if (state.hasHistoryLoadFailed) it.drop(1) else it }
             .filter { it <= OLDER_MESSAGES_TRIGGER_INDEX }
             .collect {
                 action(MessageAction.LoadOlderMessages)

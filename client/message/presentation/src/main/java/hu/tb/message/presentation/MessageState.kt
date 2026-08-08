@@ -16,7 +16,9 @@ data class MessageState(
     val connectionStatus: ConnectionStatus = ConnectionStatus.CONNECTING,
     val isLoadingOlder: Boolean = false,
     // Assumed true until a page proves otherwise, so the first load is never skipped.
-    val hasMoreHistory: Boolean = true
+    val hasMoreHistory: Boolean = true,
+    // Latched until the next attempt so a failed page does not retry itself on a loop.
+    val hasHistoryLoadFailed: Boolean = false
 ) {
     // A closed chat has no socket by design, so only a live chat can be blocked by the connection.
     val canSendMessage: Boolean

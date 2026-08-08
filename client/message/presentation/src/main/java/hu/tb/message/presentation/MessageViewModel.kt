@@ -78,7 +78,13 @@ class MessageViewModel(
 
     private fun retry() {
         if (state.value.isChatClosed) return
-        viewModelScope.launch { connect() }
+        // Retry covers the whole screen, not just the socket. A latched history failure waits for
+        // a scroll to retry, which an empty list can never produce, so clear it here too.
+        _state.update { it.copy(hasHistoryLoadFailed = false) }
+        viewModelScope.launch {
+            loadNextHistoryPage()
+            connect()
+        }
     }
 
     private suspend fun connect() {
@@ -142,8 +148,9 @@ class MessageViewModel(
 
         if (page == null) {
             // A failed page keeps hasMoreHistory untouched, so scrolling up again retries
-            // instead of pretending the conversation starts here.
-            _state.update { it.copy(isLoadingOlder = false) }
+            // instead of pretending the conversation starts here. The failure is latched so the
+            // screen does not immediately ask for the same page again.
+            _state.update { it.copy(isLoadingOlder = false, hasHistoryLoadFailed = true) }
             return
         }
 
@@ -156,7 +163,8 @@ class MessageViewModel(
             latestState.copy(
                 messages = olderMessages + latestState.messages,
                 hasMoreHistory = page.hasMore,
-                isLoadingOlder = false
+                isLoadingOlder = false,
+                hasHistoryLoadFailed = false
             )
         }
     }
