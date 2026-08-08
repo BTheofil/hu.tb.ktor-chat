@@ -136,8 +136,10 @@ class MessageViewModel(
     }
 
     private fun sendMessage() = viewModelScope.launch {
-        val currentConnection = connection
         val message = state.value.currentMessageState.text.toString()
+        if (message.isBlank() || message.isEmpty()) return@launch
+
+        val currentConnection = connection
 
         // Only drop the typed text when the message actually left the device.
         if (currentConnection?.send(message) == true) {
