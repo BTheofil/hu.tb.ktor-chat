@@ -37,7 +37,7 @@ val networkModule = module {
                 contentConverter = KotlinxWebsocketSerializationConverter(Json)
             }
             defaultRequest {
-                url("http://[2a01:4f9:c014:f7e9::1]:8080")
+                url("https://theohome-chat.duckdns.org")
             }
         }
     }

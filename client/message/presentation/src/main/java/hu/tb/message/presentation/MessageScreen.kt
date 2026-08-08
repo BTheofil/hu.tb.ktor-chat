@@ -174,15 +174,6 @@ private fun MessageScreen(
             SnackbarHost(hostState = snackbarHostState)
         }
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-        ) {
-            ConnectionBar(
-                connectionStatus = state.connectionStatus,
-                retry = { action(MessageAction.Retry) }
-            )
-        }
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -285,6 +276,15 @@ private fun MessageScreen(
                 )
                 Spacer(Modifier.height(8.dp))
             }
+        }
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+        ) {
+            ConnectionBar(
+                connectionStatus = state.connectionStatus,
+                retry = { action(MessageAction.Retry) }
+            )
         }
     }
 

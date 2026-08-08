@@ -17,7 +17,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLProtocol
 import io.ktor.http.contentType
+import io.ktor.http.path
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -70,22 +72,18 @@ class MessageRepository(
             return null
         }
 
-    /**
-     * Opens a socket for one chat. Returns null when the connection can not be established, for
-     * example a refused handshake, an expired token or an unreachable server.
-     */
     suspend fun openChatConnection(groupId: Long): ChatConnection? =
         try {
             val token = userDatastore.userdataFlow().first().token
-            val session = client.webSocketSession(
-                port = 8080,
-                path = "/groupConnect",
-                block = {
-                    parameter(CLIENT_PARAMETER, groupId)
-                    header(HttpHeaders.Authorization, "Bearer $token")
+            val session = client.webSocketSession {
+                url {
+                    protocol = URLProtocol.WSS
+                    port = URLProtocol.WSS.defaultPort
+                    path("/groupConnect")
                 }
-            )
-
+                parameter(CLIENT_PARAMETER, groupId)
+                header(HttpHeaders.Authorization, "Bearer $token")
+            }
             ChatConnection(session = session, closeScope = closeScope)
         } catch (e: Exception) {
             e.printStackTrace()
