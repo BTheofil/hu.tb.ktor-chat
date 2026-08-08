@@ -114,8 +114,10 @@ class ChatRepository {
         groupId: Long,
         offset: Long
     ): List<Message> = transactionLogger {
+        // Newest first, so offset 0 is the page a chat opens on and a growing offset walks
+        // back in time. The client reverses each page before showing it.
         MessageEntity.find { MessageTable.group eq groupId }
-            .orderBy(MessageTable.timeStamp to SortOrder.ASC)
+            .orderBy(MessageTable.timeStamp to SortOrder.DESC)
             .limit(MESSAGE_PAGE_LIMIT)
             .offset(offset)
             .toList()

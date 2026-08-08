@@ -360,7 +360,8 @@ class RoutingTest {
         }
 
         assertEquals(2, messageHistory.body<List<Message>>().size)
-        messageHistory.body<List<Message>>().first().also {
+        // History is newest first, so Alice's opening message is the last entry.
+        messageHistory.body<List<Message>>().last().also {
             assertEquals("Hello", it.content)
             assertEquals(aliceUser.userId, it.senderId)
         }
@@ -369,7 +370,7 @@ class RoutingTest {
             contentType(ContentType.Application.Json)
             setBody(
                 MessageDeleteReceive(
-                    messageId = messageHistory.body<List<Message>>().first().id!!
+                    messageId = messageHistory.body<List<Message>>().last().id!!
                 )
             )
         }
