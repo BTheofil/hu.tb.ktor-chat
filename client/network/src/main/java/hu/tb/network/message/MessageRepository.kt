@@ -2,6 +2,7 @@ package hu.tb.network.message
 
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.message.domain.Message
+import hu.tb.message.domain.MessagePage
 import hu.tb.network.message.model.response.MessageResponse
 import hu.tb.network.message.model.send.GroupHistorySend
 import hu.tb.network.message.model.send.MessageDeleteSend
@@ -33,15 +34,20 @@ class MessageRepository(
     // ViewModel is being destroyed.
     private val closeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    suspend fun getMessageHistory(groupId: Int, page: Int = 0): List<Message>? =
+    /**
+     * Loads one page of history. Page 0 is the newest page, and every page after it walks
+     * further back in time. Returns null when the page could not be loaded.
+     */
+    suspend fun getMessageHistory(groupId: Int, page: Int = 0): MessagePage? =
         try {
             val response = client.post("/groupHistory") {
                 contentType(ContentType.Application.Json)
-                setBody(GroupHistorySend(groupId = groupId, offset = page))
+                // The server offset counts messages, not pages.
+                setBody(GroupHistorySend(groupId = groupId, offset = page * MESSAGE_PAGE_SIZE))
             }
             val messageDtoList = response.body<List<MessageResponse>>()
 
-            messageDtoList.map {
+            val messages = messageDtoList.map {
                 Message(
                     id = it.id,
                     senderId = it.senderId,
@@ -52,6 +58,13 @@ class MessageRepository(
                     )
                 )
             }
+
+            MessagePage(
+                // The server sends newest first, the screen reads oldest first.
+                messages = messages.reversed(),
+                // A short page means there is nothing older left on the server.
+                hasMore = messageDtoList.size == MESSAGE_PAGE_SIZE
+            )
         } catch (e: Exception) {
             e.printStackTrace()
             return null
@@ -93,3 +106,7 @@ class MessageRepository(
 }
 
 private const val CLIENT_PARAMETER = "targetGroupId"
+
+// Must match MESSAGE_PAGE_LIMIT in the server's ChatRepository. The server sends no page
+// metadata, so a full page is the only signal that more history exists.
+private const val MESSAGE_PAGE_SIZE = 10

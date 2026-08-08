@@ -41,44 +41,60 @@ class AuthRepository(
                 contentType(ContentType.Application.Json)
                 setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
             }
-            if (existUserResponse.status in HttpStatusCode.BadRequest..HttpStatusCode.NotFound) {
-                val newUserResponse = client.post("/createUser") {
-                    contentType(ContentType.Application.Json)
-                    setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
-                }
 
-                val userInfo = newUserResponse.body<UserResponse>()
-                return UserInfo(userId = userInfo.userId, userInfo.token)
-            } else {
-                // user already in db just get a new token
-                val newToken = existUserResponse.body<String>()
+            when (existUserResponse.status) {
+                HttpStatusCode.OK -> {
+                    // user already in db just get a new token
+                    val newToken = existUserResponse.body<String>()
 
-                // get user id also for dataStore
-                val userIdResponse = client.post("/searchUserByNameAndPw") {
-                    contentType(ContentType.Application.Json)
-                    setBody(
-                        SearchUserSend(
-                            name = loginInfo.username,
-                            password = loginInfo.password
+                    // get user id also for dataStore
+                    val userIdResponse = client.post("/searchUserByNameAndPw") {
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            SearchUserSend(
+                                name = loginInfo.username,
+                                password = loginInfo.password
+                            )
                         )
+                    }
+                    // The lookup answers 201 on success and plain text on 404, so parsing an
+                    // unchecked body would surface a missing user as a serialization failure.
+                    if (userIdResponse.status != HttpStatusCode.Created) null
+                    else UserInfo(
+                        userId = userIdResponse.body<UserIdResponse>().id,
+                        token = newToken
                     )
                 }
-                val userId = userIdResponse.body<UserIdResponse>().id
 
-                return UserInfo(userId = userId, token = newToken)
+                in HttpStatusCode.BadRequest..HttpStatusCode.NotFound -> {
+                    val newUserResponse = client.post("/createUser") {
+                        contentType(ContentType.Application.Json)
+                        setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
+                    }
+
+                    if (newUserResponse.status != HttpStatusCode.Created) null
+                    else newUserResponse.body<UserResponse>()
+                        .let { UserInfo(userId = it.userId, token = it.token) }
+                }
+
+                else -> null
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            return null
+            null
         }
 
     suspend fun autoLogin(loginInfo: LoginInfo): UserInfo? {
         try {
-            val tokenResponse = client.post("/token") {
+            val httpResponse = client.post("/token") {
                 contentType(ContentType.Application.Json)
                 setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
             }
-            return UserInfo(token = tokenResponse.body<String>())
+            return if (httpResponse.status == HttpStatusCode.OK) {
+                UserInfo(token = httpResponse.body<String>())
+            } else {
+                null
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             return null
