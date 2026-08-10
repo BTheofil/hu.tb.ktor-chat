@@ -7,6 +7,8 @@ import hu.tb.domain.UserInfo
 import hu.tb.network.auth.model.response.UserIdResponse
 import hu.tb.network.auth.model.send.LoginSend
 import hu.tb.network.auth.model.send.SearchUserSend
+import hu.tb.network.dashboard.model.response.UserDetail
+import hu.tb.network.dashboard.model.send.UserSearchByNameSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -16,6 +18,8 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlin.ranges.rangeTo
+
+typealias isDuplicated = Boolean
 
 class AuthRepository(
     private val client: HttpClient
@@ -28,6 +32,20 @@ class AuthRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             ServerStatus.DEAD
+        }
+
+    suspend fun checkDuplicatedName(desiredName: String): isDuplicated =
+        try {
+            val searchUsersResponse = client.post("/searchUserByName") {
+                contentType(ContentType.Application.Json)
+                setBody(UserSearchByNameSend(name = desiredName))
+            }
+
+            searchUsersResponse.body<List<UserDetail>>().isNotEmpty()
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            throw Exception()
         }
 
     /**

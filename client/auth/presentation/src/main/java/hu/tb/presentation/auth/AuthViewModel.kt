@@ -36,7 +36,12 @@ class AuthViewModel(
             AuthAction.Enter -> profileLogin()
             AuthAction.ServerCheck -> serverCheck()
             AuthAction.TogglePasswordVisibility -> togglePasswordVisibility()
+            AuthAction.CloseDuplicatedNameDialog -> closeDuplicatedDialog()
         }
+    }
+
+    private fun closeDuplicatedDialog() {
+        _state.update { it.copy(isUsernameDuplicated = false) }
     }
 
     private fun profileLogin() {
@@ -55,8 +60,29 @@ class AuthViewModel(
                 username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
-            val userInfo = authRepository.handleLogin(loginInfo)
 
+            try {
+                val isDuplicated = authRepository.checkDuplicatedName(loginInfo.username)
+                if (isDuplicated) {
+                    _state.update {
+                        it.copy(
+                            isUsernameDuplicated = true,
+                            isLoginLoading = false
+                        )
+                    }
+                    return@launch
+                }
+            } catch (_: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoginHasError = true,
+                        isLoginLoading = false
+                    )
+                }
+                return@launch
+            }
+
+            val userInfo = authRepository.handleLogin(loginInfo)
             if (userInfo == null) {
                 _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
                 return@launch
@@ -69,12 +95,7 @@ class AuthViewModel(
                 token = userInfo.token,
                 tokenRefreshDate = LocalDateTime.now().toString()
             )
-            _state.update {
-                it.copy(
-                    isLoginLoading = false,
-                    isLoginHasError = false
-                )
-            }
+
             _event.send(AuthEvent.AuthSuccess)
         }
     }
