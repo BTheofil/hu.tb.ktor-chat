@@ -36,7 +36,12 @@ class AuthViewModel(
             AuthAction.Enter -> profileLogin()
             AuthAction.ServerCheck -> serverCheck()
             AuthAction.TogglePasswordVisibility -> togglePasswordVisibility()
+            AuthAction.CloseDuplicatedNameDialog -> closeDuplicatedDialog()
         }
+    }
+
+    private fun closeDuplicatedDialog() {
+        _state.update { it.copy(isUserDuplicated = false) }
     }
 
     private fun profileLogin() {
@@ -49,14 +54,24 @@ class AuthViewModel(
         if (state.value.isUsernameHasError || state.value.isPasswordHasError) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoginLoading = true) }
+            _state.update { it.copy(isLoginLoading = true, isLoginHasError = false) }
 
             val loginInfo = LoginInfo(
                 username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
-            val userInfo = authRepository.handleLogin(loginInfo)
 
+            val isDuplicated = authRepository.checkDuplicates(loginInfo)
+            if (isDuplicated == null) {
+                _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
+                return@launch
+            }
+            if (isDuplicated) {
+                _state.update { it.copy(isUserDuplicated = true, isLoginLoading = false) }
+                return@launch
+            }
+
+            val userInfo = authRepository.handleLogin(loginInfo)
             if (userInfo == null) {
                 _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
                 return@launch
@@ -69,12 +84,8 @@ class AuthViewModel(
                 token = userInfo.token,
                 tokenRefreshDate = LocalDateTime.now().toString()
             )
-            _state.update {
-                it.copy(
-                    isLoginLoading = false,
-                    isLoginHasError = false
-                )
-            }
+
+            _state.update { it.copy(isLoginLoading = false) }
             _event.send(AuthEvent.AuthSuccess)
         }
     }

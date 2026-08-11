@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.skydoves.compose.stability.runtime.TraceRecomposition
 import hu.tb.domain.ServerStatus
+import hu.tb.ui.component.OneAnswerDialog
 import hu.tb.ui.theme.ChatTheme
 import hu.tb.ui.theme.Icon
 import org.koin.androidx.compose.koinViewModel
@@ -89,18 +90,25 @@ private fun AuthScreen(
             state = state,
             action = action
         )
-        Status(
+        ServerStatus(
             modifier = Modifier.padding(innerPadding),
             state = state,
             action = action
         )
+        if (state.isUserDuplicated) {
+            OneAnswerDialog(
+                title = "Different Credentials",
+                text = "Try different credentials to log in",
+                confirmLabel = "Okay",
+                onConfirm = { action(AuthAction.CloseDuplicatedNameDialog) }
+            )
+        }
     }
-
 }
 
 @TraceRecomposition
 @Composable
-fun Form(
+private fun Form(
     modifier: Modifier = Modifier,
     state: AuthState,
     action: (AuthAction) -> Unit
@@ -223,7 +231,7 @@ fun Form(
 
 @TraceRecomposition
 @Composable
-fun Status(
+private fun ServerStatus(
     modifier: Modifier = Modifier,
     state: AuthState,
     action: (AuthAction) -> Unit
@@ -276,7 +284,7 @@ fun Status(
     }
 }
 
-@Preview(apiLevel = 36)
+@Preview
 @Composable
 private fun LoginScreenPreview() {
     ChatTheme {

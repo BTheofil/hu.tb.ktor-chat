@@ -13,5 +13,6 @@ data class AuthState(
     val isLoginLoading: Boolean = false,
     val serverStatus: ServerStatus = ServerStatus.DEAD,
     val serverCheckedTime: String = "00:00",
-    val isServerCheckLoading: Boolean = false
+    val isServerCheckLoading: Boolean = false,
+    val isUserDuplicated: Boolean = false
 )

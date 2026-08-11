@@ -61,6 +61,46 @@ fun ConfirmDialog(
     )
 }
 
+@Composable
+fun OneAnswerDialog(
+    title: String,
+    text: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                content = {
+                    Text(
+                        text = confirmLabel,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            )
+        },
+    )
+}
+
 @Preview
 @Composable
 private fun ConfirmDialogPreview() {

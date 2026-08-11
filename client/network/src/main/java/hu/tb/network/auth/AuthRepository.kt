@@ -7,6 +7,8 @@ import hu.tb.domain.UserInfo
 import hu.tb.network.auth.model.response.UserIdResponse
 import hu.tb.network.auth.model.send.LoginSend
 import hu.tb.network.auth.model.send.SearchUserSend
+import hu.tb.network.dashboard.model.response.UserDetail
+import hu.tb.network.dashboard.model.send.UserSearchByNameSend
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -28,6 +30,28 @@ class AuthRepository(
         } catch (e: Exception) {
             e.printStackTrace()
             ServerStatus.DEAD
+        }
+
+    /**
+     * tells whether the desired username is already taken by someone with a different password
+     * @return true when the name is taken and none of the matches accept this password,
+     * false when the name is free or belongs to this very login, null when it could not be decided
+     **/
+    suspend fun checkDuplicates(loginInfo: LoginInfo): Boolean? =
+        try {
+            val nameResponse = client.post("/searchUserByName") {
+                contentType(ContentType.Application.Json)
+                setBody(UserSearchByNameSend(name = loginInfo.username))
+            }
+
+            // The lookup always answers OK with a json array, empty when the name is still free.
+            if (nameResponse.status != HttpStatusCode.OK) null
+            else nameResponse.body<List<UserDetail>>().let { users ->
+                users.isNotEmpty() && users.none { it.password == loginInfo.password }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
 
     /**
