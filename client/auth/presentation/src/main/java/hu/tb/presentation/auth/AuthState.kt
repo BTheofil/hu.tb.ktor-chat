@@ -6,7 +6,6 @@ import hu.tb.domain.ServerStatus
 data class AuthState(
     val username: TextFieldState = TextFieldState(),
     val isUsernameHasError: Boolean = false,
-    val isUsernameDuplicated: Boolean = false,
     val password: TextFieldState = TextFieldState(),
     val isPasswordVisible: Boolean = false,
     val isPasswordHasError: Boolean = false,
@@ -14,5 +13,6 @@ data class AuthState(
     val isLoginLoading: Boolean = false,
     val serverStatus: ServerStatus = ServerStatus.DEAD,
     val serverCheckedTime: String = "00:00",
-    val isServerCheckLoading: Boolean = false
+    val isServerCheckLoading: Boolean = false,
+    val isUserDuplicated: Boolean = false
 )

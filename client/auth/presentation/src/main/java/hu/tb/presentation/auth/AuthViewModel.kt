@@ -41,7 +41,7 @@ class AuthViewModel(
     }
 
     private fun closeDuplicatedDialog() {
-        _state.update { it.copy(isUsernameDuplicated = false) }
+        _state.update { it.copy(isUserDuplicated = false) }
     }
 
     private fun profileLogin() {
@@ -54,31 +54,20 @@ class AuthViewModel(
         if (state.value.isUsernameHasError || state.value.isPasswordHasError) return
 
         viewModelScope.launch {
-            _state.update { it.copy(isLoginLoading = true) }
+            _state.update { it.copy(isLoginLoading = true, isLoginHasError = false) }
 
             val loginInfo = LoginInfo(
                 username = state.value.username.text.toString(),
                 password = state.value.password.text.toString()
             )
 
-            try {
-                val isDuplicated = authRepository.checkDuplicatedName(loginInfo.username)
-                if (isDuplicated) {
-                    _state.update {
-                        it.copy(
-                            isUsernameDuplicated = true,
-                            isLoginLoading = false
-                        )
-                    }
-                    return@launch
-                }
-            } catch (_: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoginHasError = true,
-                        isLoginLoading = false
-                    )
-                }
+            val isDuplicated = authRepository.checkDuplicates(loginInfo)
+            if (isDuplicated == null) {
+                _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
+                return@launch
+            }
+            if (isDuplicated) {
+                _state.update { it.copy(isUserDuplicated = true, isLoginLoading = false) }
                 return@launch
             }
 
@@ -96,6 +85,7 @@ class AuthViewModel(
                 tokenRefreshDate = LocalDateTime.now().toString()
             )
 
+            _state.update { it.copy(isLoginLoading = false) }
             _event.send(AuthEvent.AuthSuccess)
         }
     }

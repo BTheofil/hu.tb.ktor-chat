@@ -95,10 +95,10 @@ private fun AuthScreen(
             state = state,
             action = action
         )
-        if (state.isUsernameDuplicated) {
+        if (state.isUserDuplicated) {
             OneAnswerDialog(
-                title = "Duplicated Username",
-                text = "This username already in used. Please choose else.",
+                title = "Different Credentials",
+                text = "Try different credentials to log in",
                 confirmLabel = "Okay",
                 onConfirm = { action(AuthAction.CloseDuplicatedNameDialog) }
             )

@@ -19,8 +19,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlin.ranges.rangeTo
 
-typealias isDuplicated = Boolean
-
 class AuthRepository(
     private val client: HttpClient
 ) {
@@ -34,18 +32,26 @@ class AuthRepository(
             ServerStatus.DEAD
         }
 
-    suspend fun checkDuplicatedName(desiredName: String): isDuplicated =
+    /**
+     * tells whether the desired username is already taken by someone with a different password
+     * @return true when the name is taken and none of the matches accept this password,
+     * false when the name is free or belongs to this very login, null when it could not be decided
+     **/
+    suspend fun checkDuplicates(loginInfo: LoginInfo): Boolean? =
         try {
-            val searchUsersResponse = client.post("/searchUserByName") {
+            val nameResponse = client.post("/searchUserByName") {
                 contentType(ContentType.Application.Json)
-                setBody(UserSearchByNameSend(name = desiredName))
+                setBody(UserSearchByNameSend(name = loginInfo.username))
             }
 
-            searchUsersResponse.body<List<UserDetail>>().isNotEmpty()
-
+            // The lookup always answers OK with a json array, empty when the name is still free.
+            if (nameResponse.status != HttpStatusCode.OK) null
+            else nameResponse.body<List<UserDetail>>().let { users ->
+                users.isNotEmpty() && users.none { it.password == loginInfo.password }
+            }
         } catch (e: Exception) {
             e.printStackTrace()
-            throw Exception()
+            null
         }
 
     /**
