@@ -79,7 +79,7 @@ class AuthViewModel(
                     )
 
                     _state.update { it.copy(isLoginLoading = false) }
-                    _event.send(AuthEvent.AuthSuccess)
+                    _event.send(AuthEvent.AuthSuccess(isNewAccount = result.isNewAccount))
                 }
             }
         }

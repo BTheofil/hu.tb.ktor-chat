@@ -53,12 +53,12 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel = koinViewModel(),
-    navigationRequest: () -> Unit
+    navigationRequest: (isNewAccount: Boolean) -> Unit
 ) {
     LaunchedEffect(Unit) {
         viewModel.event.collect { event ->
             if (event is AuthEvent.AuthSuccess) {
-                navigationRequest()
+                navigationRequest(event.isNewAccount)
             }
         }
     }
