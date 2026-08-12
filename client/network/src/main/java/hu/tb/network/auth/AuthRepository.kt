@@ -2,6 +2,7 @@ package hu.tb.network.auth
 
 import hu.tb.network.auth.model.response.UserResponse
 import hu.tb.domain.LoginInfo
+import hu.tb.domain.LoginResult
 import hu.tb.domain.ServerStatus
 import hu.tb.domain.UserInfo
 import hu.tb.network.auth.model.response.UserIdResponse
@@ -17,7 +18,6 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import kotlin.ranges.rangeTo
 
 class AuthRepository(
     private val client: HttpClient
@@ -33,33 +33,13 @@ class AuthRepository(
         }
 
     /**
-     * tells whether the desired username is already taken by someone with a different password
-     * @return true when the name is taken and none of the matches accept this password,
-     * false when the name is free or belongs to this very login, null when it could not be decided
+     * the provided login data check if the user profile already exist, if not than create a new account.
+     * The server tolerates duplicated usernames, the guard lives here: when the credentials get no
+     * token back but the name is already registered, somebody else owns it.
+     * @param loginInfo username: String, password: String
+     * @return hu.tb.domain.LoginResult - Success with the token and user id, UsernameTaken or Failure
      **/
-    suspend fun checkDuplicates(loginInfo: LoginInfo): Boolean? =
-        try {
-            val nameResponse = client.post("/searchUserByName") {
-                contentType(ContentType.Application.Json)
-                setBody(UserSearchByNameSend(name = loginInfo.username))
-            }
-
-            // The lookup always answers OK with a json array, empty when the name is still free.
-            if (nameResponse.status != HttpStatusCode.OK) null
-            else nameResponse.body<List<UserDetail>>().let { users ->
-                users.isNotEmpty() && users.none { it.password == loginInfo.password }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-
-    /**
-     * the provided login data check if the user profile already exist, if not than create a new account
-     * @param hu.tb.domain.LoginInfo username: String, password: String
-     * @return hu.tb.domain.Token - value:String
-     **/
-    suspend fun handleLogin(loginInfo: LoginInfo): UserInfo? =
+    suspend fun handleLogin(loginInfo: LoginInfo): LoginResult =
         try {
             val existUserResponse = client.post("/token") {
                 contentType(ContentType.Application.Json)
@@ -83,29 +63,42 @@ class AuthRepository(
                     }
                     // The lookup answers 201 on success and plain text on 404, so parsing an
                     // unchecked body would surface a missing user as a serialization failure.
-                    if (userIdResponse.status != HttpStatusCode.Created) null
-                    else UserInfo(
-                        userId = userIdResponse.body<UserIdResponse>().id,
-                        token = newToken
+                    if (userIdResponse.status != HttpStatusCode.Created) LoginResult.Failure
+                    else LoginResult.Success(
+                        UserInfo(
+                            userId = userIdResponse.body<UserIdResponse>().id,
+                            token = newToken
+                        )
                     )
                 }
 
-                in HttpStatusCode.BadRequest..HttpStatusCode.NotFound -> {
-                    val newUserResponse = client.post("/createUser") {
+                // no token for these credentials, so either the name is free or it belongs to somebody else
+                HttpStatusCode.NotFound -> {
+                    val nameResponse = client.post("/searchUserByName") {
                         contentType(ContentType.Application.Json)
-                        setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
+                        setBody(UserSearchByNameSend(name = loginInfo.username))
                     }
 
-                    if (newUserResponse.status != HttpStatusCode.Created) null
-                    else newUserResponse.body<UserResponse>()
-                        .let { UserInfo(userId = it.userId, token = it.token) }
+                    // The lookup always answers OK with a json array, empty when the name is still free.
+                    if (nameResponse.status != HttpStatusCode.OK) LoginResult.Failure
+                    else if (nameResponse.body<List<UserDetail>>().isNotEmpty()) LoginResult.UsernameTaken
+                    else {
+                        val newUserResponse = client.post("/createUser") {
+                            contentType(ContentType.Application.Json)
+                            setBody(LoginSend(name = loginInfo.username, password = loginInfo.password))
+                        }
+
+                        if (newUserResponse.status != HttpStatusCode.Created) LoginResult.Failure
+                        else newUserResponse.body<UserResponse>()
+                            .let { LoginResult.Success(UserInfo(userId = it.userId, token = it.token)) }
+                    }
                 }
 
-                else -> null
+                else -> LoginResult.Failure
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            null
+            LoginResult.Failure
         }
 
     suspend fun autoLogin(loginInfo: LoginInfo): UserInfo? {
