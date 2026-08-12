@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import hu.tb.datastore.UserDatastoreRepository
 import hu.tb.domain.LoginInfo
+import hu.tb.domain.LoginResult
 import hu.tb.network.auth.AuthRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
@@ -61,32 +62,26 @@ class AuthViewModel(
                 password = state.value.password.text.toString()
             )
 
-            val isDuplicated = authRepository.checkDuplicates(loginInfo)
-            if (isDuplicated == null) {
-                _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
-                return@launch
-            }
-            if (isDuplicated) {
-                _state.update { it.copy(isUserDuplicated = true, isLoginLoading = false) }
-                return@launch
-            }
+            when (val result = authRepository.handleLogin(loginInfo)) {
+                LoginResult.Failure ->
+                    _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
 
-            val userInfo = authRepository.handleLogin(loginInfo)
-            if (userInfo == null) {
-                _state.update { it.copy(isLoginHasError = true, isLoginLoading = false) }
-                return@launch
+                LoginResult.UsernameTaken ->
+                    _state.update { it.copy(isUserDuplicated = true, isLoginLoading = false) }
+
+                is LoginResult.Success -> {
+                    userDatastoreRepository.updateUserData(
+                        id = result.userInfo.userId,
+                        name = state.value.username.text.toString(),
+                        password = state.value.password.text.toString(),
+                        token = result.userInfo.token,
+                        tokenRefreshDate = LocalDateTime.now().toString()
+                    )
+
+                    _state.update { it.copy(isLoginLoading = false) }
+                    _event.send(AuthEvent.AuthSuccess)
+                }
             }
-
-            userDatastoreRepository.updateUserData(
-                id = userInfo.userId,
-                name = state.value.username.text.toString(),
-                password = state.value.password.text.toString(),
-                token = userInfo.token,
-                tokenRefreshDate = LocalDateTime.now().toString()
-            )
-
-            _state.update { it.copy(isLoginLoading = false) }
-            _event.send(AuthEvent.AuthSuccess)
         }
     }
 
