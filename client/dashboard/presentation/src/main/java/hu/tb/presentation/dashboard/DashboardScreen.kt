@@ -73,6 +73,8 @@ fun DashboardScreen(
                 DashboardEvent.LeaveGroupFailed -> "Could not leave the chat, try again."
                 DashboardEvent.LoadGroupsFailed -> "Could not refresh your chats, check your connection."
                 DashboardEvent.SearchFailed -> "Search failed, check your connection."
+                DashboardEvent.LoggedIn -> "Logged in successfully."
+                DashboardEvent.AccountCreated -> "New account created."
             }
             snackbarHostState.showSnackbar(message = message)
         }

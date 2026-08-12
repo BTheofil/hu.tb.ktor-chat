@@ -1,5 +1,5 @@
 package hu.tb.presentation.auth
 
 sealed interface AuthEvent {
-    data object AuthSuccess: AuthEvent
+    data class AuthSuccess(val isNewAccount: Boolean): AuthEvent
 }

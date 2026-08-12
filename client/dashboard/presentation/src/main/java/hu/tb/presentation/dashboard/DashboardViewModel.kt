@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
+    private val authOutcome: AuthOutcome,
     private val dashboardRepository: DashboardRepository,
     private val userDatastoreRepository: UserDatastoreRepository
 ) : ViewModel() {
@@ -26,6 +27,14 @@ class DashboardViewModel(
     val event = _event.receiveAsFlow()
 
     init {
+        viewModelScope.launch {
+            when (authOutcome) {
+                AuthOutcome.LOGGED_IN -> _event.send(DashboardEvent.LoggedIn)
+                AuthOutcome.ACCOUNT_CREATED -> _event.send(DashboardEvent.AccountCreated)
+                AuthOutcome.WAS_AUTO_LOGIN -> Unit
+            }
+        }
+
         viewModelScope.launch {
             val userData = userDatastoreRepository.userdataFlow().first()
             _state.update { it.copy(username = userData.name) }

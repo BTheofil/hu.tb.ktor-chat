@@ -65,10 +65,11 @@ class AuthRepository(
                     // unchecked body would surface a missing user as a serialization failure.
                     if (userIdResponse.status != HttpStatusCode.Created) LoginResult.Failure
                     else LoginResult.Success(
-                        UserInfo(
+                        userInfo = UserInfo(
                             userId = userIdResponse.body<UserIdResponse>().id,
                             token = newToken
-                        )
+                        ),
+                        isNewAccount = false
                     )
                 }
 
@@ -89,8 +90,12 @@ class AuthRepository(
                         }
 
                         if (newUserResponse.status != HttpStatusCode.Created) LoginResult.Failure
-                        else newUserResponse.body<UserResponse>()
-                            .let { LoginResult.Success(UserInfo(userId = it.userId, token = it.token)) }
+                        else newUserResponse.body<UserResponse>().let {
+                            LoginResult.Success(
+                                userInfo = UserInfo(userId = it.userId, token = it.token),
+                                isNewAccount = true
+                            )
+                        }
                     }
                 }
 

@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import hu.tb.navigator.Destination
 import hu.tb.navigator.Navigator
+import hu.tb.presentation.dashboard.AuthOutcome
 import hu.tb.ui.theme.ChatTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                 ChatTheme {
                     Navigator(
                         startDestination = when (state) {
-                            MainState.HasLoggedUser -> Destination.Dashboard
+                            MainState.HasLoggedUser -> Destination.Dashboard(authOutcome = AuthOutcome.WAS_AUTO_LOGIN)
                             MainState.NoLogin -> Destination.Auth
                         }
                     )

@@ -10,8 +10,10 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import hu.tb.message.presentation.MessageScreen
 import hu.tb.message.presentation.MessageViewModel
+import hu.tb.presentation.dashboard.AuthOutcome
 import hu.tb.presentation.dashboard.DashboardAction
 import hu.tb.presentation.dashboard.DashboardScreen
+import hu.tb.presentation.dashboard.DashboardViewModel
 import hu.tb.presentation.auth.AuthScreen
 import hu.tb.profile.presentation.ProfileScreen
 import org.koin.compose.viewmodel.koinViewModel
@@ -20,7 +22,7 @@ import org.koin.core.parameter.parametersOf
 @Stable
 sealed interface Destination {
     data object Auth : Destination
-    data object Dashboard : Destination
+    data class Dashboard(val authOutcome: AuthOutcome) : Destination
     data object Profile : Destination
     data class Message(
         val groupId: Long,
@@ -47,14 +49,23 @@ fun Navigator(
         entryProvider = entryProvider {
             entry<Destination.Auth> {
                 AuthScreen(
-                    navigationRequest = {
-                        backStack.add(Destination.Dashboard)
+                    navigationRequest = { isNewAccount ->
+                        backStack.add(
+                            Destination.Dashboard(
+                                authOutcome = if (isNewAccount) AuthOutcome.ACCOUNT_CREATED
+                                else AuthOutcome.LOGGED_IN
+                            )
+                        )
                         backStack.remove(Destination.Auth)
                     }
                 )
             }
-            entry<Destination.Dashboard> {
+            entry<Destination.Dashboard> { key ->
+                val viewModel = koinViewModel<DashboardViewModel> {
+                    parametersOf(key.authOutcome)
+                }
                 DashboardScreen(
+                    viewModel = viewModel,
                     navigationRequest = {
                         when (it) {
                             is DashboardAction.GroupClick -> backStack.add(
